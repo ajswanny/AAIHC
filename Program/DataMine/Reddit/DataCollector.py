@@ -223,14 +223,9 @@ def main():
 
     data.add_submissions(subreddit_name= 'news', which= 'full', recursion= False)
 
-    data.build_json_data()
-
+    # data.build_json_data()
 
     return 0
-
-
-
-
 
 
 
