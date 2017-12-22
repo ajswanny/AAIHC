@@ -26,7 +26,7 @@ class DataCollector:
 
     def __init__(self, p_client_id: str, p_client_secret: str, p_user_agent: str):
         """
-
+        Init.
         :param p_client_id:
         :param p_client_secret:
         :param p_user_agent:
@@ -50,7 +50,7 @@ class DataCollector:
 
     def add_subreddit(self, p_subreddit_id: str):
         """
-
+        Add a "Subreddit" object to the Reddit instance.
         :param p_subreddit_id:
         :return:
         """
@@ -65,7 +65,7 @@ class DataCollector:
 
     def add_submissions(self, *args, subreddit_name: str, which: str, recursion: bool):
         """
-
+        Adds the specified "Submission" objects to the Reddit instance.
         :param recursion:
         :param subreddit_name:
         :param which:
@@ -115,6 +115,7 @@ class DataCollector:
         print("Preparing for serialization...")
 
         count = 1
+
         for key in self.submissions:
             self.submissions[key].comments.replace_more(limit=0)
 
@@ -129,7 +130,7 @@ class DataCollector:
 
     def build_json_data(self):
         """
-
+        Serializes "Comment" data structures for each "Submission" in the submissions dict.
         :return:
         """
 
@@ -146,7 +147,7 @@ class DataCollector:
         count = 1
         for key in self.submissions:
 
-            # Ensure iteration of every comment.
+            # Ensure iteration of every comment. Replace the "More" objects of each submission.
             self.submissions[key].comments.replace_more(limit=0)
 
             # Create holder for dicts of comment data.
