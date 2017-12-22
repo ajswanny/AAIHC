@@ -43,7 +43,7 @@ class StreamListener(tweepy.StreamListener):
         print(status_analysis_str)
 
         # Append data to record file.
-        with open('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataMine-Twitter/raw_tweets_data.txt', 'a') as f:
+        with open('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Twitter/raw_tweets_data.txt', 'a') as f:
             f.write(text)
             f.write('\n')
 
@@ -57,7 +57,7 @@ def main():
     # Create Stream object.
     twitter_stream = tweepy.Stream(auth= Twitter_API.auth, listener= StreamListener())
 
-    # Initialize DataMine-Twitter stream.
+    # Initialize Twitter stream.
     twitter_stream.filter(track= ['usa'])
 
 main()

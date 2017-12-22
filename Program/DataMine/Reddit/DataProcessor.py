@@ -1,4 +1,4 @@
-import DataObserver
+from Reddit import DataObserver
 
 # Import SciKit Learn machine learning modules.
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -6,11 +6,7 @@ from sklearn.cross_validation import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from matplotlib import pyplot as plt
 
-from sklearn.svm import SVC
-from sklearn.datasets import load_digits
 from sklearn.model_selection import learning_curve
-from sklearn.model_selection import ShuffleSplit
-
 
 import numpy
 

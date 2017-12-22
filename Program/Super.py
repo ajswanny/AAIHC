@@ -1,5 +1,4 @@
 # This is the Super class.
-from DataMine import DataCleaner, DataCollector
 
 class Super:
 
