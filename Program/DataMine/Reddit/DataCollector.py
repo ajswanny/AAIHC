@@ -213,7 +213,7 @@ def main():
     # Add the "news" subreddit to the Reddit instance of "data".
     data.add_subreddit('news')
 
-    data.add_submissions(which= 'full')
+    data.add_submissions(subreddit_name= 'news', which= 'full')
 
     data.build_json_data(json_path= 'default', replace_more= True)
 
