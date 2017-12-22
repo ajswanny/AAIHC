@@ -127,18 +127,11 @@ class DataCollector:
 
 
 
-    def build_json_data(self, replace_more: bool):
+    def build_json_data(self):
         """
 
-        :param args:
-        :param kwargs:
         :return:
         """
-
-        # if replace_more:
-        #     # Perform pre-processing.
-        #     self.prepare_build()
-
 
         # Define list to filter data to be recorded.
         fields_for_comment_dict = (
@@ -149,79 +142,68 @@ class DataCollector:
         # Output process.
         print("Beginning serialization of Submission objects. \nSerializing...")
 
+        # Serialize each Submission's comments to a JSON file, iterating through the 'submissions' dict.
         count = 1
         for key in self.submissions:
 
+            # Ensure iteration of every comment.
             self.submissions[key].comments.replace_more(limit=0)
 
+            # Create holder for dicts of comment data.
             list_of_items = []
 
-            print('\t', count, key)
-            count += 1
-
-
+            # Record desired data fields of each "Comment" object
             for comment in self.submissions[key].comments.list():
 
                 try:
 
+                    # Holder for all Comment data fields.
                     to_dict = vars(comment)
 
+                    # Holder for selected data fields to be recorded.
                     sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
 
+                    # Created recording for date and time of Comment creation.
                     date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
                     sub_dict['date_created'] = date[0]
                     sub_dict['time_created'] = date[1]
 
+                    # Append constructed data structure to list for later JSON writing.
                     list_of_items.append(sub_dict)
 
+                # Catch possible KeyError.
                 except KeyError:
 
+                    # Step for debugging checkpoint.
                     catalyst = comment
 
 
-
-
-
+            # Define file location.
             suffix = 'r(news)_submission-' + self.submissions[key].id + '.json'
-
             write_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
 
 
+            # Write data to JSON file.
             try:
-
                 # Write JSON object to file.
                 with open(write_path, 'w+') as f:
                     json.dump(list_of_items, f, indent=2)
 
+            # Catch possible IOError.
             except IOError:
                 print("\tCould not locate JSON file.")
 
 
-        print("\t\tDone")
+            # Output status.
+            print('\t', count, key)
+            count += 1
 
 
+        # Output completion status.
+        print('\tComplete.')
 
+        return 0
 
-
-
-
-    def build(self, sub_id: str):
-        """
-        Handler method for alternate building process.
-        :param sub_id:
-        :return:
-        """
-
-        # data.build_json_data('news-7ej943', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-79v2cg', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-6oi3gu', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-5r5qx4', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-7fwv10', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-6a8ji6', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-72xfdb', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-3b6zln', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-6zw2mp', which='all', json_path='respective', entire_comment_tree=True)
-        # data.build_json_data('news-5vznv8', which='all', json_path='respective', entire_comment_tree=True)
 
 
 
@@ -240,7 +222,7 @@ def main():
 
     data.add_submissions(subreddit_name= 'news', which= 'full', recursion= False)
 
-    data.build_json_data(replace_more= True)
+    data.build_json_data()
 
 
     return 0
