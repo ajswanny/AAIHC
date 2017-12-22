@@ -63,14 +63,19 @@ class DataCollector:
 
 
 
-    def add_submissions(self, subreddit_name: str, which: str, *args):
+    def add_submissions(self, *args, subreddit_name: str, which: str, recursion: bool):
         """
 
+        :param recursion:
         :param subreddit_name:
         :param which:
         :param args:
         :return:
         """
+
+        # Output state.
+        if not recursion:
+            print("Adding Submissions...")
 
         # Add the specified Submission objects.
         if which == 'given':
@@ -81,9 +86,7 @@ class DataCollector:
 
                 self.submissions[submission_name] = self.reddit_instance.submission(id=arg)
 
-                print("Successfully added submission: " + str(arg))
-
-                self.submission_ids.append(arg)
+                print("\t" + submission_name)
 
 
         # Add the top 50 Submissions for the given Subreddit.
@@ -92,79 +95,14 @@ class DataCollector:
             # Add submissions.
             for submission in self.subreddits['news'].top(time_filter= 'all', limit= 50):
 
-                submission_name = subreddit_name + '-' + submission.id
+                submission_id = submission.id
 
-                self.add_submissions('news', submission.id)
+                submission_name = subreddit_name + '-' + submission_id
 
-                work_id = 'news-' + submission.id
-
-                self.build_json_data(json_path= 'respective', replace_more= True)
+                self.add_submissions(submission_id, subreddit_name= 'news', which= 'given', recursion= True)
 
 
-
-    def build_json_data(self, **kwargs):
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
-
-        # Define parameters.
-        json_path: str = kwargs['json_path']                        #
-
-        replace_more: bool = kwargs['replace_more']                 #
-
-
-        # Define list to filter data to be recorded.
-        fields_for_comment_dict = (
-            'id', 'parent_id', 'subreddit_name_prefixed', 'body', 'controversiality', 'ups', 'downs', 'score',
-            'created')
-
-
-        # Output process step.
-        print("Beginning serialization of Submission objects.")
-
-        for key in self.submissions:
-
-            list_of_items = []
-
-
-            print("\tSerializing: " + str(self.submissions[key]) + " ...")
-
-
-            for comment in self.submissions[key].comments.list():
-
-                to_dict = vars(comment)
-
-                sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
-
-                date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
-                sub_dict['date_created'] = date[0]
-                sub_dict['time_created'] = date[1]
-
-                list_of_items.append(sub_dict)
-
-
-            # Define default JSON file location.
-            if json_path == 'respective':
-                special = 'r(news)_submission-' + self.submissions[key].id + '.json'
-
-                json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/' + special
-
-
-            try:
-
-                # Write JSON object to file.
-                with open(json_path, 'w') as f:
-                    json.dump(list_of_items, f, indent=2)
-
-            except IOError:
-                print("Could not locate JSON file.")
-
-
-        print("\t\tDone")
-
+        return 0
 
 
     def prepare_build(self):
@@ -173,10 +111,97 @@ class DataCollector:
         :return:
         """
 
-
         # Replace the "More" objects of each submission.
+        print("Preparing for serialization...")
+
+        count = 1
         for key in self.submissions:
             self.submissions[key].comments.replace_more(limit=0)
+
+            print('\t', count, key)
+
+            count += 1
+
+        print('\tComplete.')
+
+
+
+
+    def build_json_data(self, replace_more: bool):
+        """
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        # if replace_more:
+        #     # Perform pre-processing.
+        #     self.prepare_build()
+
+
+        # Define list to filter data to be recorded.
+        fields_for_comment_dict = (
+            'id', 'parent_id', 'subreddit_name_prefixed', 'body', 'controversiality', 'ups', 'downs', 'score',
+            'created')
+
+
+        # Output process.
+        print("Beginning serialization of Submission objects. \nSerializing...")
+
+        count = 1
+        for key in self.submissions:
+
+            self.submissions[key].comments.replace_more(limit=0)
+
+            list_of_items = []
+
+            print('\t', count, key)
+            count += 1
+
+
+            for comment in self.submissions[key].comments.list():
+
+                try:
+
+                    to_dict = vars(comment)
+
+                    sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
+
+                    date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
+                    sub_dict['date_created'] = date[0]
+                    sub_dict['time_created'] = date[1]
+
+                    list_of_items.append(sub_dict)
+
+                except KeyError:
+
+                    catalyst = comment
+
+
+
+
+
+            suffix = 'r(news)_submission-' + self.submissions[key].id + '.json'
+
+            write_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
+
+
+            try:
+
+                # Write JSON object to file.
+                with open(write_path, 'w+') as f:
+                    json.dump(list_of_items, f, indent=2)
+
+            except IOError:
+                print("\tCould not locate JSON file.")
+
+
+        print("\t\tDone")
+
+
+
+
 
 
 
@@ -213,9 +238,9 @@ def main():
     # Add the "news" subreddit to the Reddit instance of "data".
     data.add_subreddit('news')
 
-    data.add_submissions(subreddit_name= 'news', which= 'full')
+    data.add_submissions(subreddit_name= 'news', which= 'full', recursion= False)
 
-    data.build_json_data(json_path= 'default', replace_more= True)
+    data.build_json_data(replace_more= True)
 
 
     return 0
