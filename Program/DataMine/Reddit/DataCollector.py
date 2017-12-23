@@ -62,6 +62,9 @@ class DataCollector:
         self.subreddit_names.append(p_subreddit_id)
 
 
+        return self
+
+
 
     def add_submissions(self, *args, subreddit_name: str, which: str, recursion: bool):
         """
@@ -102,7 +105,7 @@ class DataCollector:
                 self.add_submissions(submission_id, subreddit_name= 'news', which= 'given', recursion= True)
 
 
-        return 0
+        return self
 
 
     def prepare_build(self):
@@ -125,6 +128,30 @@ class DataCollector:
 
         print('\tComplete.')
 
+
+        return self
+
+
+
+    def build_json_indeces(self):
+        """
+        Creates a file listing all "Submission" IDs for later reference.
+        :return:
+        """
+
+        # Define the file location.
+        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths'
+
+        # Open the file.
+        with open(path, 'w+') as f:
+
+            # Write each Submission's ID to the file.
+            for key in self.submissions:
+
+                f.write(self.submissions[key].id + '\n')
+
+
+        return self
 
 
 
@@ -209,7 +236,7 @@ class DataCollector:
         # Output completion status.
         print('\tComplete.')
 
-        return 0
+        return self
 
 
 
@@ -229,7 +256,9 @@ def main():
 
     data.add_submissions(subreddit_name= 'news', which= 'full', recursion= False)
 
-    data.build_json_data()
+    data.build_json_indeces()
+
+    # data.build_json_data()Î
 
     return 0
 

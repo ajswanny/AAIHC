@@ -41,7 +41,7 @@ class DataCleaner:
 
         # Set the default JSON file location.
         self.default_json_path = \
-            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_data.json'
+            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-news/r(news)_submission-3b6zln.json'
 
 
         # Initialize JSON file locations map.
@@ -291,12 +291,17 @@ class DataCleaner:
         :return: pandas.Dataframe
         """
 
-        # Define JSON path.
-        path = self.json_paths[subreddit_id]
+        try:
+            # Define JSON path.
+            path = self.json_paths[subreddit_id]
 
 
-        # Redefine base Dataframe.
-        self.dataframe = pandas.read_json(path)
+            # Redefine base Dataframe.
+            self.dataframe = pandas.read_json(path)
+
+        except ValueError:
+
+            print(ValueError.__traceback__)
 
 
         # Clean the base Dataframe.
@@ -427,9 +432,8 @@ def main():
 
     df = build_basic(return_df= True)
 
-    short_df = df[:1000].reset_index()
 
-
+    print(df.info())
 
 
 
