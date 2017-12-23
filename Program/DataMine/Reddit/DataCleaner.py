@@ -6,6 +6,10 @@ from unidecode import unidecode
 
 # noinspection PyCompatibility
 class DataCleaner:
+    """
+    The DataCleaner class is purposed for the creation of a Pandas "Dataframe" composed of an aggregate of the
+    data collected with 'DataCollector'.
+    """
 
     # Declare the class's fields.
     dataframe: pandas.DataFrame
@@ -16,12 +20,12 @@ class DataCleaner:
     json_path: str
     default_json_path: str
     json_paths: dict
+    # ---
 
 
-    def __init__(self, json_path: str, process: bool):
+    def __init__(self, process: bool, json_path: str):
         """
         Init.
-        :param submission_id:
         :param json_path:
         :param process:
         """
@@ -43,10 +47,6 @@ class DataCleaner:
         if json_path == 'default_path':
             self.json_path = self.default_json_path
 
-        else:
-            self.json_path = json_path
-            self.json_paths[submission_id] = json_path
-
 
         # Create base Dataframe.
         self.dataframe = pandas.read_json(self.json_path)
@@ -67,7 +67,7 @@ class DataCleaner:
 
     def init_json_map(self):
         """
-         Defines the JSON file locations respective to each "Submission" object.
+        Defines the JSON file locations respective to each "Submission" object.
         :return:
         """
 
@@ -99,7 +99,7 @@ class DataCleaner:
             self.json_paths[submission_id] = json_path
 
 
-        return 0
+        return self
 
 
 
@@ -110,7 +110,7 @@ class DataCleaner:
         :return:
         """
 
-        # Output entire Dataframe if no cell is specified.
+        # Output entire base Dataframe if no cell is specified.
         if not args:
             print(self.dataframe.to_string())
 
@@ -119,11 +119,11 @@ class DataCleaner:
             print(self.dataframe[args[0]])
 
         # Output a cell.
-        else:
+        elif len(args) == 2:
             print(self.dataframe[args[0]][args[1]])
 
 
-        return 0
+        return self
 
 
 
@@ -139,7 +139,7 @@ class DataCleaner:
         self.clean_dataframe_rows(inplace= True)
 
 
-        return 0
+        return self
 
 
 
@@ -156,7 +156,7 @@ class DataCleaner:
              'created', 'date_created', 'time_created']]
 
 
-        return 0
+        return self
 
 
 
@@ -167,7 +167,7 @@ class DataCleaner:
         :return:
         """
 
-        # Define a temporary working Dataframe.
+        # Define a temporary work Dataframe.
         temp_df = self.dataframe.copy(deep= True)
 
 
@@ -184,70 +184,39 @@ class DataCleaner:
         temp_df['body'] = temp_df['body'].apply(lambda x: unidecode(x))
 
 
-        # Drop duplicate rows in 'body' column keeping the first occurrence.
-        # Remove duplicate rows.
+        # Remove duplicate rows in 'body' column keeping the first occurrence.
         temp_df.drop_duplicates(subset= 'body', keep= 'first', inplace= False)
 
 
-        # Redefine Dataframe if 'inplace' is true.
+        # Redefine base Dataframe if 'inplace' is true.
         if inplace:
             self.dataframe = temp_df
 
 
-        # Return placer Dataframe if 'inplace' is false.
+        # Return work Dataframe if 'inplace' is false.
         if not inplace:
             return temp_df
 
 
-        return 0
+        return self
 
 
 
     def process(self, with_last: bool):
         """
-        Create unique Dataframes for all data subsets.
+        Creates unique DataFrames for all data subsets.
         :return:
         """
 
-
+        # Iterate 'json_paths' dict field and store the data in each file as a DataFrame in the 'dataframes' dict field.
         for key in self.json_paths:
 
-            self.new_dataframe(subreddit_id= key, mount= True, process= True)
+            # Append 'dataframes' with newly recorded DataFrame.
+            self.append_dataframe(subreddit_id= key, mount= True, process= True)
 
         if with_last:
 
             self.dataframes['t3_79v2cg'] = self.dataframe
-
-
-
-    def new_dataframe(self, subreddit_id: str, mount: bool, process: bool):
-        """
-
-        :param process:
-        :param subreddit_id:
-        :param mount: Redefines base Dataframe if true.
-        :return:
-        """
-
-        # Get Submission ID.
-        submission_id = self.dataframe.parent_id[0]
-
-
-        # Append to Dataframes dict.
-        self.dataframes[submission_id] = self.dataframe
-
-
-        # Redefine base Dataframe if 'mount' is true.
-        if mount:
-            self.load_new_dataframe(subreddit_id= subreddit_id)
-
-
-        # Clean the base Dataframe is 'process' true.
-        if process:
-            self.clean()
-
-
-        return 0
 
 
 
@@ -269,39 +238,74 @@ class DataCleaner:
         self.clean()
 
 
-        return 0
+        return self
 
 
 
-    def init_super_dataframe(self):
+    def append_dataframe(self, subreddit_id: str, mount: bool, process: bool):
         """
-
+        Appends a new Dataframe to the 'dataframes' dict field.
+        :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
+        :param mount: Redefine base Dataframe.
+        :param process: Clean the base Dataframe.
         :return:
         """
 
-        self.super_dataframe = self.clean_dataframe_rows(inplace= False)
+        # Get Submission ID.
+        submission_id = self.dataframe.parent_id[0]
+
+
+        # Append to Dataframes dict.
+        self.dataframes[submission_id] = self.dataframe
+
+
+        # Redefine base Dataframe if 'mount' is true.
+        if mount:
+            self.load_new_dataframe(subreddit_id= subreddit_id)
+
+
+        # Clean the base Dataframe if 'process' true.
+        if process:
+            self.clean()
+
+
+        return self
 
 
 
-    def append_super_dataframe(self, dataframe_to_append: pandas.DataFrame):
+    def append_super_dataframe(self, df_to_append: pandas.DataFrame):
         """
-
-        :param dataframe_to_append:
+        Appends a new Dataframe to the meta-DataFrame.
+        :param df_to_append:
         :return:
         """
 
-        self.super_dataframe = self.super_dataframe.append(dataframe_to_append)
+        # Append 'super_dataframe'; reset the index.
+        self.super_dataframe = self.super_dataframe.append(df_to_append)
         self.super_dataframe = self.super_dataframe.reset_index(drop= True)
+
+
+        return self
+
 
 
     def process_super_dataframe(self):
         """
+        Handler for processing of meta-Dataframe.
+            1. Appends each Dataframe in 'dataframes' field to the meta-Dataframe.
 
         :return:
         """
 
+        # Iterate 'dataframes' dict field and append each value to the meta-DataFrame.
         for key in self.dataframes:
             self.append_super_dataframe(self.dataframes[key])
+
+
+        return self
+
+
+
 
 
 def main():
@@ -311,17 +315,18 @@ def main():
     """
 
     # Instantiate DataCleaner
-    data_clean = DataCleaner(submission_id='3b6zln', process= True,
-        json_path='/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/r(news)_submission-3b6zln.json')
+    data_clean = DataCleaner(
+        process= True,
+        json_path= '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/r(news)_submission-3b6zln.json')
 
 
     # Build the workable Dataframe.
-    # Clean up Dataframe. Remove rows with 'body' column containing "[deleted]" or "[removed]".
+    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
     data_clean.clean()
 
 
     # Process the dataframes.
-    data_clean.process(with_last= True)
+    # data_clean.process(with_last= True)
 
 
     # Process Super Dataframe.
