@@ -212,18 +212,23 @@ class DataCleaner:
 
     def process(self, with_last: bool):
         """
-        Creates unique DataFrames for all data subsets.
+        Creates unique DataFrames for all data subsets and appends them to the 'dataframes' dict field. That is,
+            the data for each "Submission" object recorded by 'DataCollector'.
+
+        :param with_last: Append to 'dataframes' the last DataFrame created and recorded to the base DataFrame.
         :return:
         """
 
-        # Iterate 'json_paths' dict field and store the data in each file as a DataFrame in the 'dataframes' dict field.
+        # Iterate 'json_paths' dict field and store the data in each file as a DataFrame in 'dataframes'.
         for key in self.json_paths:
 
             # Append 'dataframes' with newly recorded DataFrame.
             self.append_dataframe(subreddit_id= key, mount= True, process= True)
 
+        # Append the last DataFrame created and recorded to the base DataFrame if 'with_last' is true.
         if with_last:
 
+            # Append the base DataFrame.
             self.dataframes['t3_79v2cg'] = self.dataframe
 
 
@@ -253,13 +258,15 @@ class DataCleaner:
     def append_dataframe(self, subreddit_id: str, mount: bool, process: bool):
         """
         Appends a new Dataframe to the 'dataframes' dict field.
+            - Note: The first DataFrame appended to 'dataframes' is always the current base DataFrame.
         :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
         :param mount: Redefine base Dataframe.
         :param process: Clean the base Dataframe.
         :return:
         """
 
-        # Get Submission ID.
+        # Get Submission ID from base DataFrame.
+        #   - Note: This value is retrieved from the base DataFrame.
         submission_id = self.dataframe.parent_id[0]
 
 
@@ -267,12 +274,12 @@ class DataCleaner:
         self.dataframes[submission_id] = self.dataframe
 
 
-        # Redefine base Dataframe if 'mount' is true.
+        # Redefine the base Dataframe if 'mount' is true.
         if mount:
             self.load_new_dataframe(subreddit_id= subreddit_id)
 
 
-        # Clean the base Dataframe if 'process' true.
+        # Clean the base Dataframe if 'process' is true.
         if process:
             self.clean()
 
@@ -335,7 +342,7 @@ def main():
 
 
     # Process the dataframes.
-    # data_clean.process(with_last= True)
+    data_clean.process(with_last= False)
 
 
     # Process Super Dataframe.
