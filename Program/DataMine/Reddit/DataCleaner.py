@@ -1,8 +1,10 @@
 # BOF
 
+# Import necessary modules.
+from unidecode import unidecode
+
 import pandas, pprint
 import matplotlib.pyplot as plt
-from unidecode import unidecode
 
 
 
@@ -16,7 +18,8 @@ class DataCleaner:
     data collected with 'DataCollector'.
     """
 
-    # Declare the class's fields.
+
+    """ Declare the class's fields. """
     dataframe: pandas.DataFrame
     super_dataframe: pandas.DataFrame
 
@@ -25,14 +28,14 @@ class DataCleaner:
     json_path: str
     default_json_path: str
     json_paths: dict
-    # ---
+
 
 
     def __init__(self, process: bool, json_path: str, submission_id: str):
         """
         Init.
-        :param json_path:
         :param process:
+        :param json_path:
         :param submission_id:
         """
 
@@ -124,6 +127,7 @@ class DataCleaner:
             - Can specify row or cell for base DataFrame.
 
         :param args:
+        :param view_super:
         :return:
         """
 
@@ -426,12 +430,7 @@ def main():
     short_df = df[:1000].reset_index()
 
 
-    plot = short_df.scatter(x='index', y='score', figsize=(20, 8))
 
-    plt.figure()
-
-
-    plt.plot(short_df)
 
 
 main()

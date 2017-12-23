@@ -1,36 +1,130 @@
+# BOF
+
+# Import necessary modules.
+from google.cloud import language
 from Reddit import DataCleaner
 
 import pandas
-from google.cloud import language
 import six
 
 
 
+class DataObserver:
+    """
+    The DataObserver class generates the data structures for appropriate observation and analysis.
+    """
 
 
-# Define working data.
+    """ Declare the class data fields. """
+    # The base "DataFrame".
+    DF = pandas.DataFrame
 
-# DF is DataCleaner.run_datacleaner return value.
-major_df = DataCleaner.main()
+    # The shortened base DataFrame.
+    SDF = pandas.DataFrame
+
+    # The "Series" composed of the 'body' column of the base DataFrame 'DF'.
+    body = pandas.Series
+    short_body = pandas.Series
+
+    # The DataFrame version of 'body'.
+    body_df = pandas.DataFrame
 
 
-SDF_Body_series = major_df.body
-small_df_body_series = SDF_Body_series[:5000]
+    def __init__(self):
+        """
+        Defines the work data.
+        :return:
+        """
+
+        # Generate the base DataFrame from 'DataCleaner'.
+        self.DF = DataCleaner.build_basic(return_df= True)
+
+        # Generate the shortened base DataFrame.
+        self.SDF = self.DF.copy(deep= True)
+
+        # Create a "Series" from the base DataFrame 'DF'.
+        self.body = self.DF.body
 
 
-SDataFrame = small_df_body_series.to_frame()
+        # Create a shortened Series.
+        self.short_body = self.body[:5000]
+
+
+        # Convert the 'body' Series into a workable DataFrame.
+        self.body_df = self.short_body.to_frame()
 
 
 
 
+    def categorize(self, which: str):
+        """
 
-# The working aggregate Dataframe.
-major_df = pandas.read_json('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json')
-major_df = major_df.reset_index()
+        :param which:
+        :return:
+        """
+
+        if which == 'base':
+
+            for index, row in self.DF.iterrows():
+                #
+                try:
+
+                    # Get the body text for classification.
+                    text = self.DF.loc[index, 'body']
+
+
+                    # Run [Google, Inc.]:'classify' to get Category and Sentiment evaluations.
+                    classification = classify(text, verbose= False)
+
+
+                    # Split the identified categories.
+                    split_categories = split_labels(classification)
+
+
+                    # Get first identified category. (Has max confidence)
+                    first_category = next(iter(split_categories))
+
+                    # Add category to dataframe.
+                    self.DF.loc[index, 'category'] = first_category
+
+                    # Add sentiment score.
+                    self.DF.loc[index, 'sentiment_score'] = the_sentiment_score
+
+                # Catch errors with the Google Cloud API.
+                except:
+
+                    #
+                    try:
+                        #
+                        # print("Dropped a column")
+                        self.DF.drop(index, inplace=True)
+
+                        # print("Dropped index: ", index)
+
+                    #
+                    except IndexError:
+                        #
+                        print("Encountered DF end")
+                        return
+
+                    #
+                    continue
+
+
+
 
 
 
 def main():
+
+    DataObserve = DataObserver()
+
+
+    # The working aggregate Dataframe.
+    # major_df = pandas.read_json(
+    #     '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json')
+    # major_df = major_df.reset_index()
+
 
     # Add the Category column.
     # SDataFrame["category"] = ""
@@ -48,51 +142,10 @@ def main():
     return 0
 
 
-def categorize():
-
-    # Debug
-    # print(major_df)
-
-    for index, row in major_df.iterrows():
-        #
-        try:
-            # Get the classification.
-            text = major_df.loc[index, 'body']
-            # Debug
-            # print(text)
-            classification = classify(text, verbose=False)
-            # Split the categories identified.
-            split_categories = split_labels(classification)
-            # Get first identified category. (Has max confidence)
-            first_category = next(iter(split_categories))
-
-            # Add category to dataframe.
-            major_df.loc[index, 'category'] = first_category
-
-            # Add sentiment score.
-            major_df.loc[index, 'sentiment_score'] = the_sentiment_score
-
-        except:
-
-            #
-            try:
-                #
-                # print("Dropped a column")
-                major_df.drop(index, inplace=True)
-
-                # print("Dropped index: ", index)
-
-            #
-            except IndexError:
-                #
-                print("Encountered DF end")
-                return
-
-            #
-            continue
 
 
-# [STARTGoogleWork]
+# [START Google Work]
+
 # Copyright 2017, Google, Inc.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -190,7 +243,7 @@ def split_labels(categories):
     return _categories
 
 
-# {ENDGoogleWork]
+# {END Google Work]
 
 def count_words():
     word_count = 0
@@ -204,19 +257,8 @@ def count_words():
     # print(df_body_series[0].split())
 
 
-def clip():
-    # df_body_series_train = SDF_Body_series[:22000]
-    # print(df_body_series_train .tail())
-
-    # Define
-    # df_body_series_test = SDF_Body_series[22000:]
-    # print(df_body_series_test.head())
-    return
-
-
-def length():
-    # print(SDF_Body_series.describe())
-    return
 
 
 main()
+
+# EOF
