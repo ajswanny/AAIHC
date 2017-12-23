@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from unidecode import unidecode
 
 
+
+
+# [Begin Class: DataCleaner] #
+
 # noinspection PyCompatibility
 class DataCleaner:
     """
@@ -368,6 +372,8 @@ class DataCleaner:
 
 
         return self
+
+# [End Class: DataCleaner] #
 
 
 
