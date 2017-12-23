@@ -210,7 +210,7 @@ class DataCollector:
 
 def main():
     """
-
+    -main
     :return:
     """
 

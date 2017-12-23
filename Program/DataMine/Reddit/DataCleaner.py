@@ -19,8 +19,10 @@ class DataCleaner:
 
     def __init__(self, submission_id: str, json_path: str, process: bool):
         """
-
+        Init.
+        :param submission_id:
         :param json_path:
+        :param process:
         """
 
         # Set the default JSON file location.
@@ -58,33 +60,43 @@ class DataCleaner:
 
     def init_json_map(self):
         """
-
+         Defines the JSON file locations respective to each "Submission" object.
         :return:
         """
 
-        sub_ids = []
+        submission_ids = []
 
-        with open('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/json_paths') as f:
+        # Read the JSON file locations from the source file.
+        with open('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths') as f:
 
+            # Read, organize, and record input.
             content = f.readlines()
 
             content = [x.strip() for x in content]
 
-            sub_ids = content
+            submission_ids = content
 
-        for item in sub_ids:
 
-            special = 'r(news)_submission-' + item + '.json'
+        # Define the JSON file locations dict.
+        for submission_id in submission_ids:
 
-            json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/' + special
+            # Create dynamic suffix for each Submission.
+            suffix = 'r(news)_submission-' + submission_id + '.json'
 
-            self.json_paths[item] = json_path
+            # Define the correct absolute path.
+            json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
+
+            # Append to JSON file locations dict.
+            self.json_paths[submission_id] = json_path
+
+
+        return 0
 
 
 
     def view_dataframe(self, *args):
         """
-        View the Dataframe with specified rows or cells.
+        Allows viewing of the base Dataframe with specified rows or cells.
         :param args:
         :return:
         """
@@ -102,58 +114,82 @@ class DataCleaner:
             print(self.dataframe[args[0]][args[1]])
 
 
-
-    def organize_dataframe(self):
-        """
-        Builds a Dataframe with the correct column organization.
-        :return:
-        """
-
-        # Redefine Dataframe rows.
-        self.dataframe = self.dataframe[
-            ['id', 'parent_id', 'subreddit_name_prefixed', 'body', 'ups', 'downs', 'score', 'controversiality',
-             'created', 'date_created', 'time_created']]
-
-
-
-    def clean_dataframe_rows(self, inplace: bool):
-        """
-        Clean the Dataframe's rows.
-        Remove duplicates, null values, etc.
-        :return:
-        """
-
-        # Remove Null-equivalent values.
-        temp_df = self.dataframe.query("body != '[deleted]'")
-        temp_df = temp_df.query("body != '[removed]'")
-
-        # Reset the index.
-        temp_df = temp_df.reset_index(drop=True)
-
-        # Define and apply lambda function to decode possible unicode characters.
-        temp_df['body'] = temp_df['body'].apply(lambda x: unidecode(x))
-
-        # Drop duplicate rows in 'body' column keeping the first occurrence.
-        # Remove duplicate rows.
-        temp_df.drop_duplicates(subset='body', keep='first', inplace= False)
-
-        # Redefine Dataframe.
-        self.dataframe = temp_df
-
-        # Return placer Dataframe if redefinition is not desired.
-        if not inplace:
-            return temp_df
+        return 0
 
 
 
     def clean(self):
         """
-        Handler method for Dataframe cleaning.
+        Handler method for all base Dataframe cleaning operations.
         :return:
         """
 
+        # Clean the base Dataframe.
         self.organize_dataframe()
         self.clean_dataframe_rows(inplace= True)
+
+
+        return 0
+
+
+
+    def organize_dataframe(self):
+        """
+        Redefines the base Dataframe with the correct column organization.
+        :return:
+        """
+
+        # Redefine Dataframe rows.
+        self.dataframe = self.dataframe[
+            ['id', 'parent_id', 'subreddit_name_prefixed',
+             'body', 'ups', 'downs', 'score', 'controversiality',
+             'created', 'date_created', 'time_created']]
+
+
+        return 0
+
+
+
+    def clean_dataframe_rows(self, inplace: bool):
+        """
+        Cleans the base Dataframe's rows.
+        Removes duplicate rows, null values, etc.
+        :return:
+        """
+
+        # Define a temporary working Dataframe.
+        temp_df = self.dataframe.copy(deep= True)
+
+
+        # Remove null values.
+        temp_df = temp_df.query("body != '[deleted]'")
+        temp_df = temp_df.query("body != '[removed]'")
+
+
+        # Reset the index.
+        temp_df = temp_df.reset_index(drop= True)
+
+
+        # Define and apply lambda function to decode possible unicode characters.
+        temp_df['body'] = temp_df['body'].apply(lambda x: unidecode(x))
+
+
+        # Drop duplicate rows in 'body' column keeping the first occurrence.
+        # Remove duplicate rows.
+        temp_df.drop_duplicates(subset= 'body', keep= 'first', inplace= False)
+
+
+        # Redefine Dataframe if 'inplace' is true.
+        if inplace:
+            self.dataframe = temp_df
+
+
+        # Return placer Dataframe if 'inplace' is false.
+        if not inplace:
+            return temp_df
+
+
+        return 0
 
 
 
@@ -241,15 +277,7 @@ class DataCleaner:
             self.append_super_dataframe(self.dataframes[key])
 
 
-def analyze():
-    """
-
-    :param series_cell:
-    :return:
-    """
-
-
-def run_datacleaner():
+def main():
     """
 
     :return:
@@ -270,7 +298,6 @@ def run_datacleaner():
     # Process Super Dataframe.
     data_clean.process_super_dataframe()
 
-    return data_clean.super_dataframe
 
 
 # EOF

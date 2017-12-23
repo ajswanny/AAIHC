@@ -1,51 +1,35 @@
+from Reddit import DataCleaner
+
 import pandas
-
-# Imports the Google Cloud client library
 from google.cloud import language
-
 import six
 
-# [END Imports]
 
 
-# [START Define Working Data]
+
+
 # Define working data.
 
 # DF is DataCleaner.run_datacleaner return value.
-# major_df = DataCleaner.run_datacleaner()
+major_df = DataCleaner.run_datacleaner()
 
-#
-# SDF_Body_series = major_df.body
-# small_df_body_series = SDF_Body_series[:5000]
 
-#
-# SDataFrame = small_df_body_series.to_frame()
-count = 24116
+SDF_Body_series = major_df.body
+small_df_body_series = SDF_Body_series[:5000]
 
-#
-# CAT_DF = pandas.read_json('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-to5000.json')
+
+SDataFrame = small_df_body_series.to_frame()
+
+
+
+
 
 # The working aggregate Dataframe.
-# major_df = major_df[:5000]
 major_df = pandas.read_json('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json')
 major_df = major_df.reset_index()
 
 
-# Delete the base Dataframe.
-# del base_DF
-# Set the categories column.
-# major_df["category"] = ""
-# major_df["sentiment_score"] = ""
-# the_sentiment_score = 0
 
-# Training data sets.
-# df_body_series_train = pd.Series()
-# df_body_series_test = pd.Series()
-
-
-# [END Define Working Data]
-
-# [START Work]
 def main():
 
     # Add the Category column.
@@ -181,7 +165,7 @@ def classify(text, verbose: bool):
 # [END def_classify]
 
 
-# [START def_split_labels]
+
 def split_labels(categories):
     """The category labels are of the form "/a/b/c" up to three levels,
     for example "/Computers & Electronics/Software", and these labels
@@ -205,7 +189,6 @@ def split_labels(categories):
 
     return _categories
 
-# [END def_split_labels]
 
 # {ENDGoogleWork]
 
@@ -237,5 +220,3 @@ def length():
 
 
 main()
-
-# [END Work]
