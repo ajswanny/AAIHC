@@ -23,15 +23,17 @@ class DataCleaner:
     # ---
 
 
-    def __init__(self, process: bool, json_path: str):
+    def __init__(self, process: bool, json_path: str, submission_id: str):
         """
         Init.
         :param json_path:
         :param process:
+        :param submission_id:
         """
 
         # Set the default JSON file location.
-        self.default_json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/json_data.json'
+        self.default_json_path = \
+            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_data.json'
 
 
         # Initialize JSON file locations map.
@@ -39,13 +41,18 @@ class DataCleaner:
         self.init_json_map()
 
 
-        # Initialize meta map.
+        # Initialize DataFrames collection dict.
         self.dataframes = {}
 
 
-        # Define JSON file locations.
-        if json_path == 'default_path':
+        # Define default JSON file location.
+        if json_path == 'default':
             self.json_path = self.default_json_path
+
+        # Define "Submission" object-specific JSON file location; append to the 'json_paths' dict field.
+        else:
+            self.json_path = json_path
+            self.json_paths[submission_id] = json_path
 
 
         # Create base Dataframe.
@@ -56,11 +63,12 @@ class DataCleaner:
         print("DataCleaner instantiated.")
 
 
+        # Clean the base DataFrame and set it to the 'super_dataframe' field.
         if process:
 
             self.clean()
 
-            # Instantiate aggregate Dataframe.
+            # Instantiate meta-Dataframe.
             self.super_dataframe = self.dataframe
 
 
@@ -316,13 +324,14 @@ def main():
 
     # Instantiate DataCleaner
     data_clean = DataCleaner(
-        process= True,
-        json_path= '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/r(news)_submission-3b6zln.json')
+        process= False,
+        json_path= 'default',
+        submission_id = 'None')
 
 
     # Build the workable Dataframe.
     # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
-    data_clean.clean()
+    data_clean.clean().view_dataframe()
 
 
     # Process the dataframes.
@@ -332,6 +341,6 @@ def main():
     # Process Super Dataframe.
     data_clean.process_super_dataframe()
 
-
+main()
 
 # EOF
