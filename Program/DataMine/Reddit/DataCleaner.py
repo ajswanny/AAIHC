@@ -432,6 +432,7 @@ def main():
 
     df = build_basic(return_df= True)
 
+    # TODO: Create JSON containing all 'df' data so that this file will not have to be run so many times.
 
     print(df.info())
 
