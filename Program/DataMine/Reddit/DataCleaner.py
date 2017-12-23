@@ -1,6 +1,6 @@
 # BOF
 
-import pandas, pprint
+import pandas, pprint, matplotlib.pyplot
 from unidecode import unidecode
 
 
@@ -63,12 +63,13 @@ class DataCleaner:
         print("DataCleaner instantiated.")
 
 
-        # Clean the base DataFrame and set it to the 'super_dataframe' field.
+        # Clean the base DataFrame and set it to the 'super_dataframe' field in order to initialize the meta-DataFrame.
         if process:
 
+            # Clean the base DataFrame.
             self.clean()
 
-            # Instantiate meta-Dataframe.
+            # Initialize the meta-Dataframe.
             self.super_dataframe = self.dataframe
 
 
@@ -100,7 +101,8 @@ class DataCleaner:
 
 
             # Define the correct absolute path.
-            json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
+            json_path = \
+                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-news/' + suffix
 
 
             # Append to JSON file locations dict.
@@ -111,9 +113,11 @@ class DataCleaner:
 
 
 
-    def view_dataframe(self, *args):
+    def view_dataframe(self, *args, view_super: bool):
         """
-        Allows viewing of the base Dataframe with specified rows or cells.
+        Outputs the base Dataframe or meta-DataFrame.
+            - Can specify row or cell for base DataFrame.
+
         :param args:
         :return:
         """
@@ -129,6 +133,10 @@ class DataCleaner:
         # Output a cell.
         elif len(args) == 2:
             print(self.dataframe[args[0]][args[1]])
+
+        # Output the meta-DataFrame.
+        elif view_super:
+            print(self.super_dataframe.to_string())
 
 
         return self
@@ -210,14 +218,26 @@ class DataCleaner:
 
 
 
-    def process(self, with_last: bool):
+    def process(self, with_last: bool, process_super: bool, verbose: bool):
         """
         Creates unique DataFrames for all data subsets and appends them to the 'dataframes' dict field. That is,
             the data for each "Submission" object recorded by 'DataCollector'.
 
         :param with_last: Append to 'dataframes' the last DataFrame created and recorded to the base DataFrame.
+        :param process_super:
+        :param verbose:
         :return:
         """
+
+        # Declare global variables.
+        global count
+
+
+        # Output status if 'verbose' is True.
+        if verbose:
+            print('Processing DataFrames...')
+            count = 1
+
 
         # Iterate 'json_paths' dict field and store the data in each file as a DataFrame in 'dataframes'.
         for key in self.json_paths:
@@ -225,11 +245,34 @@ class DataCleaner:
             # Append 'dataframes' with newly recorded DataFrame.
             self.append_dataframe(subreddit_id= key, mount= True, process= True)
 
+
+            # Output status if 'verbose' is True.
+            if verbose:
+                print('\t', count, self.dataframe.parent_id[0])
+                count += 1
+
+
         # Append the last DataFrame created and recorded to the base DataFrame if 'with_last' is true.
         if with_last:
 
-            # Append the base DataFrame.
-            self.dataframes['t3_79v2cg'] = self.dataframe
+            # Retrieve the 'parent_id' field from the base DataFrame to be used as the key for the last value in
+            # 'dataframes'.
+            last_id = self.dataframe.parent_id[0]
+
+            # Append the base DataFrame to 'dataframes'.
+            self.dataframes[last_id] = self.dataframe
+
+
+        # Correctly redefine the meta-DataFrame if 'process_super' is True.
+        if process_super:
+
+            self.process_super_dataframe()
+
+
+        print('Finished.\n')
+
+
+        return self
 
 
 
@@ -259,6 +302,7 @@ class DataCleaner:
         """
         Appends a new Dataframe to the 'dataframes' dict field.
             - Note: The first DataFrame appended to 'dataframes' is always the current base DataFrame.
+
         :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
         :param mount: Redefine base Dataframe.
         :param process: Clean the base Dataframe.
@@ -270,8 +314,13 @@ class DataCleaner:
         submission_id = self.dataframe.parent_id[0]
 
 
-        # Append to Dataframes dict.
-        self.dataframes[submission_id] = self.dataframe
+        try:
+            # Append to Dataframes dict.
+            self.dataframes[submission_id] = self.dataframe
+
+        except LookupError:
+
+            print('Could not append DataFrame for Submission: ' + submission_id)
 
 
         # Redefine the base Dataframe if 'mount' is true.
@@ -322,6 +371,42 @@ class DataCleaner:
 
 
 
+def build_basic(return_df: bool):
+    """
+
+    :param return_df:
+    :return:
+    """
+
+    # Instantiate DataCleaner
+    data_clean = DataCleaner(
+        process=True,
+        json_path='default',
+        submission_id='None')
+
+
+    # Build the workable Dataframe.
+    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
+    data_clean.clean()
+
+
+    # Process the dataframes.
+    data_clean.process(with_last=True, process_super= True, verbose= False)
+
+
+    # Process Super Dataframe.
+    data_clean.process_super_dataframe()
+
+
+    # Return the meta-DataFrame if 'return_df' is True.
+    if return_df:
+        return data_clean.super_dataframe
+
+    else:
+        return 0
+
+
+
 
 def main():
     """
@@ -329,24 +414,9 @@ def main():
     :return:
     """
 
-    # Instantiate DataCleaner
-    data_clean = DataCleaner(
-        process= False,
-        json_path= 'default',
-        submission_id = 'None')
+    df = build_basic(return_df= True)
 
 
-    # Build the workable Dataframe.
-    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
-    data_clean.clean().view_dataframe()
-
-
-    # Process the dataframes.
-    data_clean.process(with_last= False)
-
-
-    # Process Super Dataframe.
-    data_clean.process_super_dataframe()
 
 main()
 

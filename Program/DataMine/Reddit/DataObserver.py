@@ -11,7 +11,7 @@ import six
 # Define working data.
 
 # DF is DataCleaner.run_datacleaner return value.
-major_df = DataCleaner.run_datacleaner()
+major_df = DataCleaner.main()
 
 
 SDF_Body_series = major_df.body
