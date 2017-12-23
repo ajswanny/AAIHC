@@ -7,6 +7,7 @@ from unidecode import unidecode
 # noinspection PyCompatibility
 class DataCleaner:
 
+    # Declare the class's fields.
     dataframe: pandas.DataFrame
     super_dataframe: pandas.DataFrame
 
@@ -17,7 +18,7 @@ class DataCleaner:
     json_paths: dict
 
 
-    def __init__(self, submission_id: str, json_path: str, process: bool):
+    def __init__(self, json_path: str, process: bool):
         """
         Init.
         :param submission_id:
@@ -28,12 +29,15 @@ class DataCleaner:
         # Set the default JSON file location.
         self.default_json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/json_data.json'
 
+
         # Initialize JSON file locations map.
         self.json_paths = {}
         self.init_json_map()
 
+
         # Initialize meta map.
         self.dataframes = {}
+
 
         # Define JSON file locations.
         if json_path == 'default_path':
@@ -43,11 +47,14 @@ class DataCleaner:
             self.json_path = json_path
             self.json_paths[submission_id] = json_path
 
+
         # Create base Dataframe.
         self.dataframe = pandas.read_json(self.json_path)
 
+
         # Confirm instantiation.
         print("DataCleaner instantiated.")
+
 
         if process:
 
@@ -83,8 +90,10 @@ class DataCleaner:
             # Create dynamic suffix for each Submission.
             suffix = 'r(news)_submission-' + submission_id + '.json'
 
+
             # Define the correct absolute path.
             json_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
+
 
             # Append to JSON file locations dict.
             self.json_paths[submission_id] = json_path
@@ -121,6 +130,7 @@ class DataCleaner:
     def clean(self):
         """
         Handler method for all base Dataframe cleaning operations.
+        Defaults 'clean_dataframe_rows()': 'inplace' to True.
         :return:
         """
 
@@ -195,7 +205,7 @@ class DataCleaner:
 
     def process(self, with_last: bool):
         """
-        Create unique dataframes for all data subsets.
+        Create unique Dataframes for all data subsets.
         :return:
         """
 
@@ -222,27 +232,44 @@ class DataCleaner:
         # Get Submission ID.
         submission_id = self.dataframe.parent_id[0]
 
-        # Append to Dataframe collection.
+
+        # Append to Dataframes dict.
         self.dataframes[submission_id] = self.dataframe
 
-        if mount:
-            self.read_new_dataframe(subreddit_id=subreddit_id)
 
+        # Redefine base Dataframe if 'mount' is true.
+        if mount:
+            self.load_new_dataframe(subreddit_id= subreddit_id)
+
+
+        # Clean the base Dataframe is 'process' true.
         if process:
             self.clean()
 
 
+        return 0
 
-    def read_new_dataframe(self, subreddit_id: str):
+
+
+    def load_new_dataframe(self, subreddit_id: str):
         """
-
+        Loads a new Dataframe into the base Dataframe.
         :return: pandas.Dataframe
         """
-        json_path = self.json_paths[subreddit_id]
 
-        self.dataframe = pandas.read_json(json_path)
+        # Define JSON path.
+        path = self.json_paths[subreddit_id]
 
+
+        # Redefine base Dataframe.
+        self.dataframe = pandas.read_json(path)
+
+
+        # Clean the base Dataframe.
         self.clean()
+
+
+        return 0
 
 
 
@@ -287,13 +314,15 @@ def main():
     data_clean = DataCleaner(submission_id='3b6zln', process= True,
         json_path='/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/json_data/r(news)_submission-3b6zln.json')
 
+
     # Build the workable Dataframe.
     # Clean up Dataframe. Remove rows with 'body' column containing "[deleted]" or "[removed]".
-    data_clean.organize_dataframe()
-    data_clean.clean_dataframe_rows(inplace= True)
+    data_clean.clean()
+
 
     # Process the dataframes.
     data_clean.process(with_last= True)
+
 
     # Process Super Dataframe.
     data_clean.process_super_dataframe()
