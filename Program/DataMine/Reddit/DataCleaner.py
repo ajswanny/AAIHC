@@ -1,6 +1,7 @@
 # BOF
 
-import pandas, pprint, matplotlib.pyplot
+import pandas, pprint
+import matplotlib.pyplot as plt
 from unidecode import unidecode
 
 
@@ -416,6 +417,15 @@ def main():
 
     df = build_basic(return_df= True)
 
+    short_df = df[:1000].reset_index()
+
+
+    plot = short_df.scatter(x='index', y='score', figsize=(20, 8))
+
+    plt.figure()
+
+
+    plt.plot(short_df)
 
 
 main()
