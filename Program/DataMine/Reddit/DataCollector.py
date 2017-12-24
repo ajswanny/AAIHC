@@ -133,7 +133,7 @@ class DataCollector:
 
 
 
-    def build_json_indeces(self):
+    def build_json_indexes(self):
         """
         Creates a file listing all "Submission" IDs for later reference.
         :return:
@@ -256,9 +256,9 @@ def main():
 
     data.add_submissions(subreddit_name= 'news', which= 'full', recursion= False)
 
-    data.build_json_indeces()
+    # data.build_json_indexes()
 
-    # data.build_json_data()Î
+    data.build_json_data()
 
     return 0
 

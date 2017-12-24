@@ -3,7 +3,7 @@
 # Import necessary modules.
 from unidecode import unidecode
 
-import pandas, pprint
+import pandas, json, pprint
 import matplotlib.pyplot as plt
 
 
@@ -387,10 +387,11 @@ class DataCleaner:
 
 
 
-def build_basic(return_df: bool):
+def build_basic(return_df: bool, record: bool):
     """
-
+    Builds all base DataFrames and meta-DataFrames.
     :param return_df:
+    :param record:
     :return:
     """
 
@@ -414,6 +415,16 @@ def build_basic(return_df: bool):
     data_clean.process_super_dataframe()
 
 
+    # Record the meta-DataFrame to a JSON file if 'record' is True.
+    if record:
+
+        # Define the file location.
+        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+
+        # Output to JSON file.
+        data_clean.super_dataframe.to_json(path)
+
+
     # Return the meta-DataFrame if 'return_df' is True.
     if return_df:
         return data_clean.super_dataframe
@@ -424,17 +435,20 @@ def build_basic(return_df: bool):
 
 
 
+
+
 def main():
     """
 
     :return:
     """
 
-    df = build_basic(return_df= True)
+    # Builds and returns meta-DataFrame.
+    # df = build_basic(return_df= True, record= False)
 
-    # TODO: Create JSON containing all 'df' data so that this file will not have to be run so many times.
+    # Build and records meta-DataFrame to JSON file.
+    # build_basic(return_df= False, record= True)
 
-    print(df.info())
 
 
 

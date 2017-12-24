@@ -114,36 +114,6 @@ class DataObserver:
 
 
 
-
-def main():
-
-    DataObserve = DataObserver()
-
-
-    # The working aggregate Dataframe.
-    # major_df = pandas.read_json(
-    #     '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json')
-    # major_df = major_df.reset_index()
-
-
-    # Add the Category column.
-    # SDataFrame["category"] = ""
-
-    # tdf = pandas.read_json('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-to5000.json')
-
-    #
-    # categorize()
-
-    # major_df.to_json(
-    #     "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json")
-
-    # print(major_df.to_string())
-
-    return 0
-
-
-
-
 # [START Google Work]
 
 # Copyright 2017, Google, Inc.
@@ -212,11 +182,10 @@ def classify(text, verbose: bool):
         return "RESULT-NA"
     # MOD
 
+
     return result
 
-
 # [END def_classify]
-
 
 
 def split_labels(categories):
@@ -245,16 +214,39 @@ def split_labels(categories):
 
 # {END Google Work]
 
-def count_words():
-    word_count = 0
 
-    # for item in df_body_series:
-    #     print(item)
 
-    # for item in df_body_series[0]:
-    #     print(item)
+# noinspection PyCompatibility
+def main():
 
-    # print(df_body_series[0].split())
+    # DataObserve = DataObserver()
+
+    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+
+    df: pandas.DataFrame = pandas.read_json(path)
+
+
+    # The working aggregate Dataframe.
+    # major_df = pandas.read_json(
+    #     '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json')
+    # major_df = major_df.reset_index()
+
+
+    # Add the Category column.
+    # SDataFrame["category"] = ""
+
+    # tdf = pandas.read_json('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-to5000.json')
+
+    #
+    # categorize()
+
+    # major_df.to_json(
+    #     "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/DataObserver_data/categorized_df-major.json")
+
+    # print(major_df.to_string())
+
+    return 0
+
 
 
 
