@@ -201,38 +201,66 @@ class DataProcessor:
 
 
 
-    def categorize(self, which: str):
+    def prepare_dataframe(self):
         """
-        Iterates the meta-DataFrame 'DF' and generates text general category classification and sentiment analysis.
-            - Drops rows of DF that cannot be classified by the API.
+        Performs any pre-processing on 'DF' needed.
+        :return:
+        """
+
+        # Define the columns.
+        columns = [
+                'id', 'parent_id', 'subreddit_name_prefixed', 'body',
+                'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
+                'created', 'date_created', 'time_created'
+            ]
+
+
+        # Add new columns to 'DF'.
+        self.DF = self.DF.reindex(columns= columns)
+
+
+        return self
+
+
+
+    def define_category(self, which: str):
+        """
+        Iterates the meta-DataFrame 'DF' and generates text general category classification.
+            - Drops rows of DF that cannot be analyzed by the API.
         :param which:
         :return:
         """
 
         if which == 'base':
 
+            # Output status.
+            print('Defining categories...')
+
             # Iterate 'DF' to generate the category and sentiment analysis with the Google Cloud API.
-            for index, row in self.DF.iterrows():
+            # TODO: See if removing 'row' from iteration is possible.
+            for index in self.DF.iterrows():
 
                 try:
 
                     # Get the body text for classification.
                     text = self.DF.loc[index, 'body']
 
-                    # Run [Google, Inc.]:'classify' to get Category and Sentiment evaluations.
-                    classification = self.classify(text, verbose=False)
+
+                    # Run classify() to get 'Category' analysis.
+                    classification = self.generate_category(text, verbose=False)
+
 
                     # Split the identified categories.
                     split_categories = self.split_labels(classification)
 
-                    # Get first identified category. (Has max confidence)
+
+                    # Get firstly identified category.
+                    #   - This firstly identified category is the one with the most confidence.
                     first_category = next(iter(split_categories))
+
 
                     # Add category to dataframe.
                     self.DF.loc[index, 'category'] = first_category
-
-                    # Add sentiment score.
-                    self.DF.loc[index, 'sentiment_score'] = sentiment_score
 
                 # Catch 'InvalidArgument' errors caused by arguments of insufficient length.
                 except google.api_core.exceptions.InvalidArgument:
@@ -243,16 +271,40 @@ class DataProcessor:
                         self.DF.drop(index, inplace=True)
 
                         # Output status.
-                        print("Dropped index: ", index)
+                        print("\tDropped index: ", index)
 
-                    #
+                    # Return if loop encountered DataFrame end.
                     except IndexError:
-                        #
+
+                        # Output status.
                         print("Encountered DF end")
+
                         return
 
-                    #
+                    # Continue loop.
                     continue
+
+
+        return self
+
+
+
+    def define_sentiment(self):
+        """
+        Iterates the meta-DataFrame 'DF' and generates text general category classification and sentiment analysis.
+            - Drops rows of DF that cannot be analyzed by the API.
+        :return:
+        """
+
+        # TODO: Finish this method.
+        for index in self.DF.iterrows():
+
+            # Add sentiment score.
+            self.DF.loc[index, 'sentiment_score'] = sentiment_score
+
+
+        return self
+
 
 
     """ [Begin: 'Google, Inc.' Work] """
@@ -282,9 +334,10 @@ class DataProcessor:
         language_client = language.LanguageServiceClient()
 
 
+        # Define the 'Document' object to be analyzed.
         document = language.types.Document(
-            content=text,
-            type=language.enums.Document.Type.PLAIN_TEXT
+            content= text,
+            type= language.enums.Document.Type.PLAIN_TEXT
         )
 
 
@@ -296,6 +349,7 @@ class DataProcessor:
         categories = response.categories
 
 
+        # Organize the category(ies) in a dict.
         for category in categories:
             # Turn the categories into a dictionary of the form:
             # {category.name: category.confidence}, so that they can
@@ -303,17 +357,17 @@ class DataProcessor:
             result[category.name] = category.confidence
 
 
-        #
+        # Output analysis is 'verbose' is True.
         if verbose:
 
             for category in categories:
+
                 print(u'=' * 20)
                 # print('Text: {}'.format(text))
                 print(u'{:<16}: {}'.format('category', category.name))
                 print(u'{:<16}: {}'.format('confidence', category.confidence))
 
 
-                                                                                                        # MOD
         return result
 
 
@@ -394,14 +448,21 @@ def main():
     :return:
     """
 
-    DP = DataProcessor()
+    DP = DataProcessor().prepare_dataframe()
 
-    text = DP.body[100]
+    df = DP.DF
 
-    classification = DP.generate_sentiment(text, verbose= False)
+    # print(df.info())
 
-    print(classification)
+    x = df.loc[50, 'body']
 
+
+    print(df.body[50])
+    print('\n')
+    print(x)
+
+
+    return 0
 
 
 
