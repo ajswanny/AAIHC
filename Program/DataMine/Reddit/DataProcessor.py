@@ -3,12 +3,12 @@
 # Import dependencies.
 from Reddit import DataCleaner
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cross_validation import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import learning_curve
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.naive_bayes import MultinomialNB
+# from sklearn.model_selection import learning_curve
 
 from google.cloud import language
+import google.api_core.exceptions
 
 import numpy
 import six
@@ -156,6 +156,7 @@ import pandas
 #     plt = plot_learning_curve(Multinomial_NB, "Multinomial Naive Bayes TF-IDF", train_vectors_X, y_train)
 #     plt.show()
 
+# [Begin Class: DataCleaner] #
 
 class DataProcessor:
     """
@@ -176,6 +177,7 @@ class DataProcessor:
     # The DataFrame version of 'body'.
     body_df = pandas.DataFrame
 
+
     def __init__(self):
         """
         Defines the work data.
@@ -183,7 +185,7 @@ class DataProcessor:
         """
 
         # Generate the base DataFrame from 'DataCleaner'.
-        self.DF = DataCleaner.build_basic(return_df=True)
+        self.DF = DataCleaner.build_basic()
 
         # Generate the shortened base DataFrame.
         self.SDF = self.DF.copy(deep=True)
@@ -197,17 +199,21 @@ class DataProcessor:
         # Convert the 'body' Series into a workable DataFrame.
         self.body_df = self.short_body.to_frame()
 
+
+
     def categorize(self, which: str):
         """
-
+        Iterates the meta-DataFrame 'DF' and generates text general category classification and sentiment analysis.
+            - Drops rows of DF that cannot be classified by the API.
         :param which:
         :return:
         """
 
         if which == 'base':
 
+            # Iterate 'DF' to generate the category and sentiment analysis with the Google Cloud API.
             for index, row in self.DF.iterrows():
-                #
+
                 try:
 
                     # Get the body text for classification.
@@ -226,18 +232,18 @@ class DataProcessor:
                     self.DF.loc[index, 'category'] = first_category
 
                     # Add sentiment score.
-                    self.DF.loc[index, 'sentiment_score'] = the_sentiment_score
+                    self.DF.loc[index, 'sentiment_score'] = sentiment_score
 
-                # Catch errors with the Google Cloud API.
-                except:
+                # Catch 'InvalidArgument' errors caused by arguments of insufficient length.
+                except google.api_core.exceptions.InvalidArgument:
 
-                    #
                     try:
-                        #
-                        # print("Dropped a column")
+
+                        # Drop the index of the arguments that raised the exception.
                         self.DF.drop(index, inplace=True)
 
-                        # print("Dropped index: ", index)
+                        # Output status.
+                        print("Dropped index: ", index)
 
                     #
                     except IndexError:
@@ -264,35 +270,31 @@ class DataProcessor:
     # See the License for the specific language governing permissions and
     # limitations under the License.
 
-
     @staticmethod
-    def classify(text, verbose: bool):                                                                  # MOD
-
+    def generate_category(text: str, verbose: bool):
         """Classify the input text into categories. """
 
-        global the_sentiment_score                                                                      # MOD
+        # Define dict to hold result of analysis.
+        result = dict()
 
-        global category                                                                                 # MOD
 
+        # Define access to the Google Cloud Natural Language API.
         language_client = language.LanguageServiceClient()
+
 
         document = language.types.Document(
             content=text,
-            type=language.enums.Document.Type.PLAIN_TEXT)
+            type=language.enums.Document.Type.PLAIN_TEXT
+        )
+
 
         # Get the response.
         response = language_client.classify_text(document)
-        # Get the "categories.
+
+
+        # Get the categories.
         categories = response.categories
 
-        # Detect & record the sentiment of the text
-        sentiment = language_client.analyze_sentiment(document=document).document_sentiment
-        the_sentiment_score = sentiment.score
-
-        # print('Text: {}'.format(text))
-        # print('Sentiment: {}, {}'.format(sentiment.score, sentiment.magnitude))
-
-        result = {}
 
         for category in categories:
             # Turn the categories into a dictionary of the form:
@@ -300,19 +302,56 @@ class DataProcessor:
             # be treated as a sparse vector.
             result[category.name] = category.confidence
 
-        if verbose:
 
-            # print(text)                                                                               # MOD
+        #
+        if verbose:
 
             for category in categories:
                 print(u'=' * 20)
+                # print('Text: {}'.format(text))
                 print(u'{:<16}: {}'.format('category', category.name))
                 print(u'{:<16}: {}'.format('confidence', category.confidence))
 
+
                                                                                                         # MOD
-        if result[category.name] is None:                                                               #
-            return "RESULT-NA"                                                                          #
-                                                                                                        # MOD
+        return result
+
+
+
+    @staticmethod
+    def generate_sentiment(text: str, verbose: bool):
+        """
+        Generates the sentiment analysis of a given corpus with the Google Cloud Natural Language API.
+        :return:
+        """
+
+        global sentiment_score
+
+        # Define access to the Google Cloud Natural Language API.
+        language_client = language.LanguageServiceClient()
+
+
+        # Define the 'Document' object to be analyzed.
+        document = language.types.Document(
+            content= text,
+            type= language.enums.Document.Type.PLAIN_TEXT
+        )
+
+
+        # Analyze & record the sentiment of the text
+        sentiment = language_client.analyze_sentiment(document=document).document_sentiment
+
+
+        # Store the sentiment analysis data.
+        #   - Organization: ('Score', 'Magnitude')
+        result = numpy.array((sentiment.score, sentiment.magnitude))
+
+
+        # Output sentiment analysis if 'verbose' is true...
+        if verbose:
+            print(u'=' * 20)
+            print('Sentiment: {}, {}'.format(sentiment.score, sentiment.magnitude))
+
 
         return result
 
@@ -342,3 +381,31 @@ class DataProcessor:
         return _categories
 
     """ {End: 'Google, Inc.' Work] """
+
+    # [End Class: DataProcessor] #
+
+
+
+
+
+def main():
+    """
+
+    :return:
+    """
+
+    DP = DataProcessor()
+
+    text = DP.body[100]
+
+    classification = DP.generate_sentiment(text, verbose= False)
+
+    print(classification)
+
+
+
+
+
+
+
+main()

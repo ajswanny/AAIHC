@@ -23,6 +23,7 @@ def main():
 
     # DataObserve = DataObserver()
 
+    """NOTE: This moved to DataCleaner"""
     # Load meta-DataFrame from JSON file.
     path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
     df: pandas.DataFrame = pandas.read_json(path)

@@ -387,7 +387,7 @@ class DataCleaner:
 
 
 
-def build_basic(return_df: bool, record: bool):
+def build_all(return_df: bool, record: bool):
     """
     Builds all base DataFrames and meta-DataFrames.
     :param return_df:
@@ -434,6 +434,28 @@ def build_basic(return_df: bool, record: bool):
 
 
 
+# noinspection PyCompatibility
+def build_basic():
+    """
+    Builds the meta-DataFrame by loading from JSON file.
+    :return: The meta-DataFrame.
+    """
+
+    # Load meta-DataFrame from JSON file.
+    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+    df: pandas.DataFrame = pandas.read_json(path)
+
+
+    # Sort the DataFrame's index.
+    df = df.sort_index(axis=0)
+
+
+    # Sort the DataFrame's columns.
+    df = df[['id', 'parent_id', 'subreddit_name_prefixed', 'body', 'ups', 'downs', 'score', 'controversiality',
+             'created', 'date_created', 'time_created']]
+
+
+    return df
 
 
 
@@ -444,15 +466,13 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    # df = build_basic(return_df= True, record= False)
+    # df = build_all(return_df= True, record= False)
 
 
     # Build and records meta-DataFrame to JSON file.
-    # build_basic(return_df= False, record= True)
+    # build_all(return_df= False, record= True)
 
 
 
-
-main()
 
 # EOF
