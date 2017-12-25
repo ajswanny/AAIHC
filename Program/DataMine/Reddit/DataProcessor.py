@@ -456,6 +456,10 @@ class DataProcessor:
         :return:
         """
 
+        # Initiate the timer.
+        clock_start = time.time()
+
+
         if which == 'base':
 
             # Initiate the Google Natural Language API.
@@ -534,7 +538,12 @@ class DataProcessor:
                     continue
 
 
-        print('Finished.\n')
+        # End the timer.
+        clock_end = time.time()
+
+
+        # Output status.
+        print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
 
 
         return self
@@ -550,7 +559,9 @@ class DataProcessor:
         :return:
         """
 
-        # analyzer = SentimentIntensityAnalyzer()
+        # Initiate timer.
+        clock_start = time.time()
+
 
         if which == 'base':
 
@@ -604,8 +615,12 @@ class DataProcessor:
                 print('\t\tNone')
 
 
+        # End timer.
+        clock_end = time.time()
+
+
         # Output status.
-        print('Finished.\n')
+        print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
 
 
         return self
@@ -672,8 +687,10 @@ class DataProcessor:
                     # Drop the index of the argument that raised the exception.
                     self.DF.drop(index, inplace=True)
 
+
                     # Increment row-drop counter.
                     drop_count += 1
+
 
                     # Output status.
                     print('\t\t', index)
@@ -683,6 +700,7 @@ class DataProcessor:
                     continue
 
 
+        # Output status.
         print('Finished.\n')
 
 
@@ -707,14 +725,9 @@ def main():
     dp.resize_dataframe(5)
 
 
-    #NOTE: ALWAYS RUN DEFINE CATEGORIES FIRST
-    start = time.time()
 
-    dp.define_categories(which= 'base')
+    dp.define_categories(which= 'base').organize_dataframe(action='reindex')
 
-    end = time.time()
-
-    print('Time: ' + str(end - start) + ' seconds.\n')
 
 
     dp.view_dataframe()
