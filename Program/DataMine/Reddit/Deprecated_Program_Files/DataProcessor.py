@@ -1,10 +1,5 @@
 # BOF
 
-#
-# DataProcesor - Version 0.2
-# Copyright (c) 2017, Alexander Joseph Swanson Villares
-#
-
 # Import dependencies.
 from Reddit import DataCleaner
 

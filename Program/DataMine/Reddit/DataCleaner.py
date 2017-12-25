@@ -160,7 +160,7 @@ class DataCleaner:
         """
 
         # Clean the base Dataframe.
-        self.organize_dataframe()
+        self.organize_dataframe_columns()
         self.clean_dataframe_rows(inplace= True)
 
 
@@ -168,7 +168,7 @@ class DataCleaner:
 
 
 
-    def organize_dataframe(self):
+    def organize_dataframe_columns(self):
         """
         Redefines the base Dataframe with the correct column organization.
         :return:
