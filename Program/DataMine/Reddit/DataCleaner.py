@@ -1,5 +1,10 @@
 # BOF
 
+#
+# DataCleaner - Version 0.1
+# Copyright (c) 2017, Alexander Joseph Swanson Villares
+#
+
 # Import necessary modules.
 from unidecode import unidecode
 

@@ -1,7 +1,7 @@
 # BOF
 
 #
-# DataProcesor - Version 0.2
+# DataProcessor - Version 0.2
 # Copyright (c) 2017, Alexander Joseph Swanson Villares
 #
 
@@ -12,12 +12,20 @@ from Reddit import DataCleaner
 # from sklearn.naive_bayes import MultinomialNB
 # from sklearn.model_selection import learning_curve
 
+# from nltk.sentiment.vader import SentimentIntensityAnalyzer
+"""
+Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for
+Sentiment Analysis of Social Media Text. Eighth International Conference on
+Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+"""
+
 from google.cloud import language
 import google.api_core.exceptions
 
 import numpy
 import six
 import pandas
+import time
 
 
 # class MachineLearningModel:
@@ -346,7 +354,7 @@ class DataProcessor:
     # limitations under the License.
 
     @staticmethod
-    def generate_category(text: str, verbose: bool):
+    def generate_category(self, text: str, verbose: bool):
         """Classify the input text into categories. """
 
         # Define dict to hold result of analysis.
@@ -424,6 +432,21 @@ class DataProcessor:
 
 
 
+    @staticmethod
+    def init_google_lang_api():
+        """
+        Initiates and authenticates access to the Google Natural Language API.
+        :return:
+        """
+
+        # Define access to the Google Cloud Natural Language API.
+        language_client = language.LanguageServiceClient()
+
+
+        return language_client
+
+
+
     def define_categories(self, which: str):
         """
         Iterates the meta-DataFrame 'DF' and generates text general category classification.
@@ -434,6 +457,10 @@ class DataProcessor:
         """
 
         if which == 'base':
+
+            # Initiate the Google Natural Language API.
+            language_client = self.init_google_lang_api()
+
 
             # Output status.
             print('Defining categories...')
@@ -449,12 +476,39 @@ class DataProcessor:
                     text = self.DF.loc[index, 'body']
 
 
+                    # Define the 'Document' object to be analyzed.
+                    document = language.types.Document(
+                        content=text,
+                        type=language.enums.Document.Type.PLAIN_TEXT
+                    )
+
+
+                    # Generate the classification analysis.
+                    category_analysis = language_client.classify_text(document)
+
+
+                    # Record the identified Categories.
+                    categories = category_analysis.categories
+
+
+                    # Define a dict to hold the Categories identified.
+                    result = dict()
+
+
+                    # Organize the category(ies) in a dict.
+                    for category in categories:
+                        # Turn the categories into a dictionary of the form:
+                        # {category.name: category.confidence}, so that they can
+                        # be treated as a sparse vector.
+                        result[category.name] = category.confidence
+
+
                     # Run classify() to get 'Category' analysis.
-                    classification = self.generate_category(text, verbose=False)
+                    # classification = self.generate_category(text, verbose=False)
 
 
                     # Split the identified categories.
-                    split_classification = self.split_labels(classification)
+                    split_classification = self.split_labels(result)
 
 
                     # Get firstly identified category.
@@ -495,6 +549,8 @@ class DataProcessor:
         :param which:
         :return:
         """
+
+        # analyzer = SentimentIntensityAnalyzer()
 
         if which == 'base':
 
@@ -598,17 +654,17 @@ class DataProcessor:
                     self.DF.loc[index, 'category'] = first_category
 
 
-                    """ Define Sentiment for 'DF' """
-                    # Generate and record the sentiment analysis.
-                    sentiment_analysis = self.generate_sentiment(text=text, verbose=False)
-
-
-                    # Append sentiment score 'DF'.
-                    self.DF.loc[index, 'sentiment_score'] = sentiment_analysis[0]
-
-
-                    # Append sentiment magnitude to 'DF'.
-                    self.DF.loc[index, 'sentiment_magnitude'] = sentiment_analysis[1]
+                    # """ Define Sentiment for 'DF' """
+                    # # Generate and record the sentiment analysis.
+                    # sentiment_analysis = self.generate_sentiment(text=text, verbose=False)
+                    #
+                    #
+                    # # Append sentiment score 'DF'.
+                    # self.DF.loc[index, 'sentiment_score'] = sentiment_analysis[0]
+                    #
+                    #
+                    # # Append sentiment magnitude to 'DF'.
+                    # self.DF.loc[index, 'sentiment_magnitude'] = sentiment_analysis[1]
 
                 # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration'.
                 except (google.api_core.exceptions.InvalidArgument, StopIteration):
@@ -644,18 +700,24 @@ def main():
     :return:
     """
 
+
     dp = DataProcessor().prepare_dataframe()
 
 
-    dp.resize_dataframe(10)
+    dp.resize_dataframe(5)
 
 
     #NOTE: ALWAYS RUN DEFINE CATEGORIES FIRST
-    dp.process_dataframe(which= 'base')
+    start = time.time()
+
+    dp.define_categories(which= 'base')
+
+    end = time.time()
+
+    print('Time: ' + str(end - start) + ' seconds.\n')
 
 
     dp.view_dataframe()
-
 
 
 
