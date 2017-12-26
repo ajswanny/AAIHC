@@ -1,9 +1,7 @@
-# BOF
-
-#
-# DataCollector - Version 0.1
-# Copyright (c) 2017, Alexander Joseph Swanson Villares
-#
+"""
+DataCollector - Version 0.1
+Copyright (c) 2017, Alexander Joseph Swanson Villares
+"""
 
 import json
 import praw
@@ -159,7 +157,8 @@ class DataCollector:
         return self
 
 
-
+    # WARNING: Creates a duplicated DataFrame.
+    # TODO: Fix.
     def build_json_data(self):
         """
         Serializes "Comment" data structures for each "Submission" in the submissions dict.

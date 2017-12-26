@@ -1,9 +1,8 @@
-# BOF
+"""
+DataProcessor - Version 0.2
+Copyright (c) 2017, Alexander Joseph Swanson Villares
+"""
 
-#
-# DataProcessor - Version 0.2
-# Copyright (c) 2017, Alexander Joseph Swanson Villares
-#
 
 # Import dependencies.
 from Reddit import DataCleaner
@@ -451,6 +450,7 @@ class DataProcessor:
         """
         Iterates the meta-DataFrame 'DF' and generates text general category classification.
             - Drops rows in DF that cannot be analyzed by the API.
+        Moreover, records the amount of time the process took to complete.
 
         :param which:
         :return:
@@ -550,6 +550,7 @@ class DataProcessor:
 
 
 
+    # TODO: Fix
     def define_sentiment(self, which: str):
         """
         Iterates the meta-DataFrame 'DF' and generates text general category classification and sentiment analysis.
@@ -629,11 +630,26 @@ class DataProcessor:
 
     def process_dataframe(self, which: str):
         """
-
+        Processes the entire base DataFrame: 'DF'. Using the Google Natural Language API, 'process_dataframe' generates
+        Category classification and Sentiment analysis for each value of the 'body' Series and appends it to 'DF'
+        inplace. Moreover, the algorithm run-time is recorded and displayed upon completion.
         :return:
         """
 
+        # Initiate the timer.
+        clock_start = time.time()
+
+
+        # Define constants.
+        INITIAL_DF_SIZE = 48627
+        FINAL_DF_SIZE = 0
+        DROP_COUNT = 0
+
+
         if which == 'base':
+
+            # Initiate the Google Natural Language API.
+            language_client = self.init_google_lang_api()
 
             # Output status.
             print('Defining Categories and Sentiment for \'DF\'...')
@@ -641,23 +657,45 @@ class DataProcessor:
 
             # Iterate 'DF' to generate the category analysis with the Google Cloud API.
             #   - Note: 'row' necessary for functional iteration (12/24/17).
-            #   - Note: Must optimize this in future.
-            drop_count = 0
             for index, row in self.DF.iterrows():
 
                 try:
 
-                    """ Define Categories for 'DF' """
-                    # Define the corpus.
+                    # Get the body text for classification.
                     text = self.DF.loc[index, 'body']
 
 
-                    # Run classify() to get 'Category' analysis.
-                    classification = self.generate_category(text, verbose=False)
+                    # Define the 'Document' object to be analyzed.
+                    document = language.types.Document(
+                        content=text,
+                        type=language.enums.Document.Type.PLAIN_TEXT
+                    )
+
+
+                    """ Define Categories for 'DF' """
+
+                    # Generate the classification analysis.
+                    category_analysis = language_client.classify_text(document)
+
+
+                    # Record the identified Categories.
+                    categories = category_analysis.categories
+
+
+                    # Define a dict to hold the Categories identified.
+                    result = dict()
+
+
+                    # Organize the category(ies) in a dict.
+                    for category in categories:
+                        # Turn the categories into a dictionary of the form:
+                        # {category.name: category.confidence}, so that they can
+                        # be treated as a sparse vector.
+                        result[category.name] = category.confidence
 
 
                     # Split the identified categories.
-                    split_classification = self.split_labels(classification)
+                    split_classification = self.split_labels(result)
 
 
                     # Get firstly identified category.
@@ -669,27 +707,32 @@ class DataProcessor:
                     self.DF.loc[index, 'category'] = first_category
 
 
-                    # """ Define Sentiment for 'DF' """
-                    # # Generate and record the sentiment analysis.
-                    # sentiment_analysis = self.generate_sentiment(text=text, verbose=False)
-                    #
-                    #
-                    # # Append sentiment score 'DF'.
-                    # self.DF.loc[index, 'sentiment_score'] = sentiment_analysis[0]
-                    #
-                    #
-                    # # Append sentiment magnitude to 'DF'.
-                    # self.DF.loc[index, 'sentiment_magnitude'] = sentiment_analysis[1]
+                    """ Define Sentiment for 'DF' """
+
+                    # Analyze & record the sentiment of the text
+                    sentiment = language_client.analyze_sentiment(document=document).document_sentiment
+
+
+                    # Store the sentiment analysis data as Numpy array.
+                    #   - Organization: ('Score', 'Magnitude')
+                    sentiment_analysis = numpy.array((sentiment.score, sentiment.magnitude))
+
+
+                    # Append sentiment score 'DF'.
+                    self.DF.loc[index, 'sentiment_score'] = sentiment_analysis[0]
+
+
+                    # Append sentiment magnitude to 'DF'.
+                    self.DF.loc[index, 'sentiment_magnitude'] = sentiment_analysis[1]
 
                 # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration'.
                 except (google.api_core.exceptions.InvalidArgument, StopIteration):
 
+                    # Increment 'DROP_COUNT' to record new row-drop.
+                    DROP_COUNT += 1
+
                     # Drop the index of the argument that raised the exception.
                     self.DF.drop(index, inplace=True)
-
-
-                    # Increment row-drop counter.
-                    drop_count += 1
 
 
                     # Output status.
@@ -700,8 +743,18 @@ class DataProcessor:
                     continue
 
 
+        # End the timer.
+        clock_end = time.time()
+
+
+        # Output status.
+        print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
+
+
         # Output status.
         print('Finished.\n')
+
+
 
 
         return self
@@ -722,15 +775,25 @@ def main():
     dp = DataProcessor().prepare_dataframe()
 
 
-    dp.resize_dataframe(5)
+    df = dp.DF
+
+    # print(df.info(), '\n\n')
+
+    dfx = df.drop_duplicates(subset='id', keep='first')
+
+    # print(dfx.info(), '\n\n')
+
+    print(dfx.to_string())
+
+    import praw.models.Comment
+
+    # dp.resize_dataframe(5)
 
 
-
-    dp.define_categories(which= 'base').organize_dataframe(action='reindex')
-
+    # dp.process_dataframe(which= 'base').organize_dataframe(action='reindex')
 
 
-    dp.view_dataframe()
+    # dp.view_dataframe()
 
 
 
