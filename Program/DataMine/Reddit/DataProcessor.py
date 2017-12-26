@@ -285,11 +285,11 @@ class DataProcessor:
         """
 
         # Define the columns.
-        columns = [
-                'id', 'parent_id', 'subreddit_name_prefixed', 'body',
+        columns = (
+                'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed', 'body',
                 'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
                 'created', 'date_created', 'time_created'
-            ]
+        )
 
 
         # Add new columns to 'DF'.
@@ -353,7 +353,7 @@ class DataProcessor:
     # limitations under the License.
 
     @staticmethod
-    def generate_category(self, text: str, verbose: bool):
+    def generate_category(text: str, verbose: bool):
         """Classify the input text into categories. """
 
         # Define dict to hold result of analysis.
@@ -550,7 +550,7 @@ class DataProcessor:
 
 
 
-    # TODO: Fix. Not updated for use of a single access to the Google Natural Langauge API.
+    # TODO: Fix. Not updated for use of a single access to the Google Natural Language API.
     def define_sentiment(self, which: str):
         """
         Iterates the meta-DataFrame 'DF' and generates text general category classification and sentiment analysis.
@@ -779,13 +779,16 @@ def main():
 
     # print(df.info(), '\n\n')
 
-    dfx = df.drop_duplicates(subset='id', keep='first')
+    # df = df.drop_duplicates(subset='id', keep=False)
+
+    print(df.info())
+
+
 
     # print(dfx.info(), '\n\n')
 
-    print(dfx.to_string())
+    # print(dfx.to_string())
 
-    import praw.models.Comment
 
     # dp.resize_dataframe(5)
 

@@ -166,8 +166,10 @@ class DataCollector:
 
         # Define list to filter data to be recorded.
         fields_for_comment_dict = (
-            'id', 'parent_id', 'subreddit_name_prefixed', 'body', 'controversiality', 'ups', 'downs', 'score',
-            'created')
+            'id', 'parent_id', 'subreddit_name_prefixed',
+            'body',
+            'controversiality', 'ups', 'downs', 'score', 'created'
+        )
 
 
         # Output process.
@@ -188,31 +190,26 @@ class DataCollector:
             # Record desired data fields of each "Comment" object
             for comment in self.submissions[key].comments.list():
 
-                try:
-
-                    # Holder for all Comment data fields.
-                    to_dict = vars(comment)
+                # Holder for all Comment data fields.
+                to_dict = vars(comment)
 
 
-                    # Holder for selected data fields to be recorded.
-                    sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
+                # Holder for selected data fields to be recorded.
+                sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
 
 
-                    # Created recording for date and time of Comment creation.
-                    date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
-                    sub_dict['date_created'] = date[0]
-                    sub_dict['time_created'] = date[1]
+                # Created recording for date and time of Comment creation.
+                date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
+                sub_dict['date_created'] = date[0]
+                sub_dict['time_created'] = date[1]
 
 
-                    # Append constructed data structure to list for later JSON writing.
-                    list_of_items.append(sub_dict)
+                # Append constructed data structure to list for later JSON writing.
+                list_of_items.append(sub_dict)
 
 
-                # Catch possible KeyError.
-                except KeyError:
-
-                    # Step for debugging checkpoint.
-                    catalyst = comment
+            # Define 'submission_id' field.
+            sub_dict['submission_id'] = key
 
 
             # Define file location.

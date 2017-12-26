@@ -3,12 +3,13 @@ DataCleaner - Version 0.1
 Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
+# TODO: Redefine implementation to force functions to work on given DataFrames, rather than always the base DataFrame.
+
 # Import necessary modules.
 from unidecode import unidecode
 
-import pandas, json, pprint
-import matplotlib.pyplot as plt
-
+import pandas, numpy
+# import pprint
 
 
 
@@ -34,7 +35,7 @@ class DataCleaner:
 
 
 
-    def __init__(self, process: bool, json_path: str, submission_id: str):
+    def __init__(self, init_super_df: bool, json_path: str, submission_id: str):
         """
         Init.
         :param process:
@@ -42,7 +43,7 @@ class DataCleaner:
         :param submission_id:
         """
 
-        # Set the default JSON file location.
+        # Set the default JSON file location for testing and debugging.
         self.default_json_path = \
             '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-news/r(news)_submission-3b6zln.json'
 
@@ -66,8 +67,14 @@ class DataCleaner:
             self.json_paths[submission_id] = json_path
 
 
+        dataframe_columns = (
+            'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
+            'body', 'ups', 'downs', 'score', 'controversiality',
+            'created', 'date_created', 'time_created'
+        )
+
         # Create base Dataframe.
-        self.dataframe = pandas.read_json(self.json_path)
+        self.dataframe = pandas.DataFrame(data= numpy.zeros((0, len(dataframe_columns))), columns= dataframe_columns)
 
 
         # Confirm instantiation.
@@ -75,10 +82,7 @@ class DataCleaner:
 
 
         # Clean the base DataFrame and set it to the 'super_dataframe' field in order to initialize the meta-DataFrame.
-        if process:
-
-            # Clean the base DataFrame.
-            self.clean()
+        if init_super_df:
 
             # Initialize the meta-Dataframe.
             self.super_dataframe = self.dataframe
@@ -99,7 +103,7 @@ class DataCleaner:
             # Read, organize, and record input.
             content = f.readlines()
 
-            content = [x.strip() for x in content]
+            content = (x.strip() for x in content)
 
             submission_ids = content
 
@@ -178,10 +182,11 @@ class DataCleaner:
         """
 
         # Redefine Dataframe rows.
-        self.dataframe = self.dataframe[
-            ['id', 'parent_id', 'subreddit_name_prefixed',
+        self.dataframe = self.dataframe[(
+             'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
              'body', 'ups', 'downs', 'score', 'controversiality',
-             'created', 'date_created', 'time_created']]
+             'created', 'date_created', 'time_created'
+        )]
 
 
         return self
@@ -241,27 +246,26 @@ class DataCleaner:
         :return:
         """
 
-        # Declare global variables.
-        global count
-
-
         # Output status if 'verbose' is True.
         if verbose:
             print('Processing DataFrames...')
-            count = 1
 
 
         # Iterate 'json_paths' dict field and store the data in each file as a DataFrame in 'dataframes'.
+        step_count = 0
         for key in self.json_paths:
 
             # Append 'dataframes' with newly recorded DataFrame.
-            self.append_dataframe(subreddit_id= key, mount= True, process= True)
+            self.append_dataframe(step= step_count, subreddit_id= key, mount= True)
 
 
             # Output status if 'verbose' is True.
             if verbose:
-                print('\t', count, self.dataframe.parent_id[0])
-                count += 1
+                print('\t', step_count, self.dataframe.parent_id[0])
+
+
+            # Increment loop step counter.
+            step_count += 1
 
 
         # Append the last DataFrame created and recorded to the base DataFrame if 'with_last' is true.
@@ -282,6 +286,40 @@ class DataCleaner:
 
 
         print('Finished.\n')
+
+
+        return self
+
+
+
+    def append_dataframe(self, step: int, subreddit_id: str, mount: bool):
+        """
+        Appends a new Dataframe to the 'dataframes' dict field.
+            - Note: The first DataFrame appended to 'dataframes' is always the current base DataFrame.
+
+        :param step:
+        :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
+        :param mount: Redefine base Dataframe.
+        :param process: Clean the base Dataframe.
+        :return:
+        """
+
+        # Get Submission ID in order to identify the Submission data to be appended.
+        submission_id = list(self.json_paths.keys())[step]
+
+
+        # Redefine the base Dataframe if 'mount' is true.
+        if mount:
+            self.load_new_dataframe(subreddit_id= subreddit_id)
+
+
+        try:
+            # Append to Dataframes dict.
+            self.dataframes[submission_id] = self.dataframe
+
+        except LookupError:
+
+            print('Could not append DataFrame for Submission: ' + submission_id)
 
 
         return self
@@ -309,45 +347,6 @@ class DataCleaner:
 
         # Clean the base Dataframe.
         self.clean()
-
-
-        return self
-
-
-
-    def append_dataframe(self, subreddit_id: str, mount: bool, process: bool):
-        """
-        Appends a new Dataframe to the 'dataframes' dict field.
-            - Note: The first DataFrame appended to 'dataframes' is always the current base DataFrame.
-
-        :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
-        :param mount: Redefine base Dataframe.
-        :param process: Clean the base Dataframe.
-        :return:
-        """
-
-        # Get Submission ID from base DataFrame.
-        #   - Note: This value is retrieved from the base DataFrame.
-        submission_id = self.dataframe.parent_id[0]
-
-
-        try:
-            # Append to Dataframes dict.
-            self.dataframes[submission_id] = self.dataframe
-
-        except LookupError:
-
-            print('Could not append DataFrame for Submission: ' + submission_id)
-
-
-        # Redefine the base Dataframe if 'mount' is true.
-        if mount:
-            self.load_new_dataframe(subreddit_id= subreddit_id)
-
-
-        # Clean the base Dataframe if 'process' is true.
-        if process:
-            self.clean()
 
 
         return self
@@ -400,23 +399,22 @@ def build_all(return_df: bool, record: bool):
 
     # Instantiate DataCleaner
     data_clean = DataCleaner(
-        process=True,
+        init_super_df=True,
         json_path='default',
         submission_id='None'
     )
 
 
-    # Build the workable Dataframe.
-    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
-    data_clean.clean()
-
-
-    # Process the dataframes.
+    # Build the workable Dataframe; process the dataframes.
     """ 
-        Warning: Setting 'process_super' to True will cause a doubled DataFrame as 'process_super_dataframe() is
+        Warning: Setting 'process_super' to True will cause a doubled DataFrame as 'process_super_dataframe()' is
         called below.
     """
     data_clean.process(with_last=True, process_super= False, verbose= False)
+
+
+    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
+    data_clean.clean()
 
 
     # Process Super Dataframe.
@@ -458,9 +456,15 @@ def build_basic():
     df = df.sort_index(axis=0)
 
 
+    df = df.drop_duplicates(subset='id', keep='first')
+
+
     # Sort the DataFrame's columns.
-    df = df[['id', 'parent_id', 'subreddit_name_prefixed', 'body', 'ups', 'downs', 'score', 'controversiality',
-             'created', 'date_created', 'time_created']]
+    df = df[(
+        'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
+        'body', 'ups', 'downs', 'score', 'controversiality',
+        'created', 'date_created', 'time_created'
+    )]
 
 
     return df
@@ -474,12 +478,19 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    df = build_all(return_df= True, record= True)
+    df = build_all(return_df= True, record= False)
 
-    print(df.info())
 
     # Build and records meta-DataFrame to JSON file.
     # build_all(return_df= False, record= True)
+
+
+    #
+    # df = build_basic()
+
+
+    #
+    print(df.info())
 
 main()
 
