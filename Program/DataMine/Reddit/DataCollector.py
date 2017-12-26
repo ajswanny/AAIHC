@@ -258,7 +258,7 @@ def main():
 
     # data.build_json_indexes()
 
-    data.build_json_data()
+    # data.build_json_data()
 
     return 0
 

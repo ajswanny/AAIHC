@@ -5,10 +5,12 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 
 # TODO: Redefine implementation to force functions to work on given DataFrames, rather than always the base DataFrame.
 
+import numpy
+import pandas
 # Import necessary modules.
 from unidecode import unidecode
 
-import pandas, numpy
+
 # import pprint
 
 
@@ -38,7 +40,7 @@ class DataCleaner:
     def __init__(self, init_super_df: bool, json_path: str, submission_id: str):
         """
         Init.
-        :param process:
+        :param init_super_df:
         :param json_path:
         :param submission_id:
         """
@@ -54,7 +56,7 @@ class DataCleaner:
 
 
         # Initialize DataFrames collection dict.
-        self.dataframes = {}
+        self.dataframes = dict()
 
 
         # Define default JSON file location.
@@ -181,12 +183,15 @@ class DataCleaner:
         :return:
         """
 
-        # Redefine Dataframe rows.
-        self.dataframe = self.dataframe[(
+        # Reorganize Dataframe rows.
+        self.dataframe = self.dataframe.reindex_axis(
+            (
              'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
              'body', 'ups', 'downs', 'score', 'controversiality',
              'created', 'date_created', 'time_created'
-        )]
+            ),
+            axis= 1
+        )
 
 
         return self
@@ -209,16 +214,16 @@ class DataCleaner:
         temp_df = temp_df.query("body != '[removed]'")
 
 
-        # Reset the index.
-        temp_df = temp_df.reset_index(drop= True)
-
-
         # Define and apply lambda function to decode possible unicode characters.
         temp_df['body'] = temp_df['body'].apply(lambda x: unidecode(x))
 
 
         # Remove duplicate rows in 'body' column keeping the first occurrence.
         temp_df.drop_duplicates(subset= 'body', keep= 'first', inplace= False)
+
+
+        # Reset the index.
+        temp_df = temp_df.reset_index(drop=True)
 
 
         # Redefine base Dataframe if 'inplace' is true.
@@ -235,12 +240,11 @@ class DataCleaner:
 
 
 
-    def process(self, with_last: bool, process_super: bool, verbose: bool):
+    def process(self, process_super: bool, verbose: bool):
         """
         Creates unique DataFrames for all data subsets and appends them to the 'dataframes' dict field. That is,
             the data for each "Submission" object recorded by 'DataCollector'.
 
-        :param with_last: Append to 'dataframes' the last DataFrame created and recorded to the base DataFrame.
         :param process_super:
         :param verbose:
         :return:
@@ -266,17 +270,6 @@ class DataCleaner:
 
             # Increment loop step counter.
             step_count += 1
-
-
-        # Append the last DataFrame created and recorded to the base DataFrame if 'with_last' is true.
-        if with_last:
-
-            # Retrieve the 'parent_id' field from the base DataFrame to be used as the key for the last value in
-            # 'dataframes'.
-            last_id = self.dataframe.parent_id[0]
-
-            # Append the base DataFrame to 'dataframes'.
-            self.dataframes[last_id] = self.dataframe
 
 
         # Correctly redefine the meta-DataFrame if 'process_super' is True.
@@ -410,15 +403,15 @@ def build_all(return_df: bool, record: bool):
         Warning: Setting 'process_super' to True will cause a doubled DataFrame as 'process_super_dataframe()' is
         called below.
     """
-    data_clean.process(with_last=True, process_super= False, verbose= False)
-
-
-    # Clean up Dataframe. Remove rows where the 'body' column contains: "[deleted]" or "[removed]".
-    data_clean.clean()
+    data_clean.process(process_super= False, verbose= False)
 
 
     # Process Super Dataframe.
     data_clean.process_super_dataframe()
+
+
+    # Perform final check for duplicated DataFrame rows.
+    data_clean.super_dataframe.drop_duplicates(subset='id', keep=False, inplace=True)
 
 
     # Record the meta-DataFrame to a JSON file if 'record' is True.
@@ -488,9 +481,11 @@ def main():
     #
     # df = build_basic()
 
+    df.drop_duplicates(subset= 'id', keep= False, inplace= True)
+
 
     #
-    print(df.info())
+    print(df.head(15).to_string())
 
 main()
 
