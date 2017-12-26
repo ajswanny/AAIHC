@@ -204,12 +204,12 @@ class DataCollector:
                 sub_dict['time_created'] = date[1]
 
 
+                # Define 'submission_id' field.
+                sub_dict['submission_id'] = key
+
+
                 # Append constructed data structure to list for later JSON writing.
                 list_of_items.append(sub_dict)
-
-
-            # Define 'submission_id' field.
-            sub_dict['submission_id'] = key
 
 
             # Define file location.
