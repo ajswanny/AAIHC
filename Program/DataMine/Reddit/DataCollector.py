@@ -158,7 +158,6 @@ class DataCollector:
 
 
     # WARNING: Creates a duplicated DataFrame.
-    # TODO: Fix.
     def build_json_data(self):
         """
         Serializes "Comment" data structures for each "Submission" in the submissions dict.

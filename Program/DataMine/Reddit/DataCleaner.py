@@ -402,7 +402,8 @@ def build_all(return_df: bool, record: bool):
     data_clean = DataCleaner(
         process=True,
         json_path='default',
-        submission_id='None')
+        submission_id='None'
+    )
 
 
     # Build the workable Dataframe.
@@ -411,7 +412,11 @@ def build_all(return_df: bool, record: bool):
 
 
     # Process the dataframes.
-    data_clean.process(with_last=True, process_super= True, verbose= False)
+    """ 
+        Warning: Setting 'process_super' to True will cause a doubled DataFrame as 'process_super_dataframe() is
+        called below.
+    """
+    data_clean.process(with_last=True, process_super= False, verbose= False)
 
 
     # Process Super Dataframe.
@@ -469,12 +474,14 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    # df = build_all(return_df= True, record= False)
+    df = build_all(return_df= True, record= True)
 
+    print(df.info())
 
     # Build and records meta-DataFrame to JSON file.
     # build_all(return_df= False, record= True)
 
+main()
 
 
 
