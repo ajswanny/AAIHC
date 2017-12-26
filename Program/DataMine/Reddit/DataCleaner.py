@@ -411,7 +411,7 @@ def build_all(return_df: bool, record: bool):
 
 
     # Perform final check for duplicated DataFrame rows.
-    data_clean.super_dataframe.drop_duplicates(subset='id', keep=False, inplace=True)
+    data_clean.super_dataframe.drop_duplicates(subset='id', keep= False, inplace= True)
 
 
     # Record the meta-DataFrame to a JSON file if 'record' is True.
@@ -434,7 +434,7 @@ def build_all(return_df: bool, record: bool):
 
 
 # noinspection PyCompatibility
-def build_basic():
+def build_simply() -> pandas.DataFrame:
     """
     Builds the meta-DataFrame by loading from JSON file.
     :return: The meta-DataFrame.
@@ -449,16 +449,19 @@ def build_basic():
     df = df.sort_index(axis=0)
 
 
+    # Perform final check for duplicated DataFrame rows.
     df = df.drop_duplicates(subset='id', keep='first')
 
 
-    # Sort the DataFrame's columns.
-    df = df[(
-        'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
-        'body', 'ups', 'downs', 'score', 'controversiality',
-        'created', 'date_created', 'time_created'
-    )]
-
+    # Perform final check for Dataframe row organization.
+    df = df.reindex_axis(
+        (
+            'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed',
+            'body', 'ups', 'downs', 'score', 'controversiality',
+            'created', 'date_created', 'time_created'
+        ),
+        axis=1
+    )
 
     return df
 
@@ -471,12 +474,16 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    df = build_all(return_df= True, record= False)
+    # df = build_all(return_df= True, record= False)
 
 
     # Build and records meta-DataFrame to JSON file.
     # build_all(return_df= False, record= True)
 
+
+    df = build_simply()
+
+    print(df.info())
 
 
 

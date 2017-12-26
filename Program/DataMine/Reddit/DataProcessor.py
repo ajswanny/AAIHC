@@ -197,7 +197,7 @@ class DataProcessor:
         """
 
         # Generate the base DataFrame from 'DataCleaner'.
-        self.DF = DataCleaner.build_basic()
+        self.DF = DataCleaner.build_simply()
 
 
         # Generate the shortened base DataFrame.
