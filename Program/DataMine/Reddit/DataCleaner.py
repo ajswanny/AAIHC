@@ -478,14 +478,8 @@ def main():
     # build_all(return_df= False, record= True)
 
 
-    #
-    # df = build_basic()
-
-    df.drop_duplicates(subset= 'id', keep= False, inplace= True)
 
 
-    #
-    print(df.head(15).to_string())
 
 main()
 
