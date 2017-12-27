@@ -395,7 +395,7 @@ class DataCleaner:
 
 def build_all(return_df: bool, record: bool):
     """
-    Builds all base DataFrames and meta-DataFrames.
+    Builds all base DataFrames and meta-DataFrame.
     :param return_df:
     :param record:
     :return:
