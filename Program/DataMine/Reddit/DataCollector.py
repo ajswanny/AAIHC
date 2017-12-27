@@ -306,11 +306,11 @@ def run_build():
 
 
     # Create a reference to the used Submission object IDs for later reference.
-    # data_collector.build_json_indexes(file_path= 'default')
+    data_collector.build_json_indexes(file_path= 'default')
 
 
     # Collect the data.
-    data_collector.build_data()
+    # data_collector.build_data()
 
 
     return 0
@@ -319,11 +319,10 @@ def run_build():
 
 def main():
     """
-    -main
+    main.
     :return:
     """
 
-    run_build()
 
     return 0
 

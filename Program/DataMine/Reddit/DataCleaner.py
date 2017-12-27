@@ -52,8 +52,8 @@ class DataCleaner:
 
 
         # Initialize JSON file locations map.
-        self.json_paths = {}
-        self.init_json_map()
+        self.json_paths = dict()
+        self.init_json_map(index_file_path= 'default')
 
 
         # Initialize DataFrames collection dict.
@@ -93,7 +93,7 @@ class DataCleaner:
 
 
     # FLAG
-    def init_json_map(self, file_path: str):
+    def init_json_map(self, index_file_path: str):
         """
         Defines the JSON file locations respective to each "Submission" object.
         :return:
@@ -103,14 +103,14 @@ class DataCleaner:
 
 
         # Define file location.
-        if file_path == 'default':
+        if index_file_path == 'default':
 
-            file_path = \
+            index_file_path = \
                 '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index_v0.txt'
 
 
         # Read the JSON file locations from the source file.
-        with open(file_path) as f:
+        with open(index_file_path) as f:
 
             # Read, organize, and record input.
             file_content = f.readlines()
@@ -305,7 +305,6 @@ class DataCleaner:
         :param step:
         :param subreddit_id: The "Subreddit" object ID for mounting to base Dataframe.
         :param mount: Redefine base Dataframe.
-        :param process: Clean the base Dataframe.
         :return:
         """
 
@@ -491,6 +490,8 @@ def main():
 
     # Build and records meta-DataFrame to JSON file.
     # build_all(return_df= False, record= True)
+
+
 
 
 main()
