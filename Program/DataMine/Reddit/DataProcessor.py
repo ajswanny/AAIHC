@@ -198,7 +198,7 @@ class DataProcessor:
         """
 
         # Generate the base DataFrame from 'DataCleaner'.
-        self.DF = DataCleaner.build_simply()
+        self.DF = DataCleaner.build_simply(file_path= 'normal')
 
 
         # Generate the shortened base DataFrame.
@@ -247,15 +247,15 @@ class DataProcessor:
 
 
 
-    def resize_dataframe(self, index_cap: int):
+    def resize_dataframe(self, before: int, after: int):
         """
         Re-sizes 'DF', including all data with index below 'index_cap'.
-        :param index_cap:
+
         :return:
         """
 
         # Resize 'DF'.
-        self.DF = self.DF.truncate(after= index_cap)
+        self.DF = self.DF.truncate(before= before, after= after)
 
 
         return self
@@ -267,11 +267,12 @@ class DataProcessor:
         Performs organizational actions on 'DF'.
         :param action:
             - reindex:
+
         :return:
         """
 
         # Reorganize the index.
-        if action == 'reindex':
+        if action == 'reindex' or 'all':
             self.DF.reset_index(drop= True, inplace= True)
 
 
@@ -279,9 +280,11 @@ class DataProcessor:
 
 
 
-    def prepare_dataframe(self):
+    def prepare_dataframe(self, organize: bool):
         """
-        Performs any pre-processing on 'DF' needed.
+        Performs any modifications on 'DF' needed for serialization, calculations, etc.
+
+        :param organize:
         :return:
         """
 
@@ -295,6 +298,13 @@ class DataProcessor:
 
         # Add new columns to 'DF'.
         self.DF = self.DF.reindex(columns= columns)
+
+
+        # Organize 'DF'. Performs:
+        #   1. Reindexing
+        if organize:
+
+            self.organize_dataframe(action='all')
 
 
         return self
@@ -447,6 +457,7 @@ class DataProcessor:
 
 
 
+    # TODO: Substantial optimization required.
     def define_categories(self, which: str):
         """
         Iterates the meta-DataFrame 'DF' and generates text general category classification.
@@ -630,7 +641,7 @@ class DataProcessor:
 
 
     # TODO: Substantial optimization required.
-    def process_dataframe(self, which: str):
+    def process_dataframe(self, which: str, record: bool):
         """
         Processes the entire base DataFrame: 'DF'. Using the Google Natural Language API, 'process_dataframe' generates
         Category classification and Sentiment analysis for each value of the 'body' Series and appends it to 'DF'
@@ -648,6 +659,7 @@ class DataProcessor:
         FINAL_DF_SIZE = 0
         CATEGORIES_ANALYZED = 0
         SENTIMENTS_ANALYZED = 0
+        SUCCESSFUL_ANALYSES = 0
         DROPPED_ROWS_COUNT = 0
 
 
@@ -734,6 +746,7 @@ class DataProcessor:
                     # Redefine constants.
                     CATEGORIES_ANALYZED += 1
                     SENTIMENTS_ANALYZED += 1
+                    SUCCESSFUL_ANALYSES += 1
 
                 # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration' errors.
                 except (google.api_core.exceptions.InvalidArgument, StopIteration):
@@ -757,6 +770,7 @@ class DataProcessor:
         # End the timer.
         clock_end = time.time()
 
+
         # Define processing time.
         PROCESS_TIME = clock_end - clock_start
 
@@ -765,29 +779,39 @@ class DataProcessor:
         FINAL_DF_SIZE = self.DF.shape[0]
         DATA_LOSS = INITIAL_DF_SIZE - FINAL_DF_SIZE
         DATA_LOSS_PERCENTAGE = FINAL_DF_SIZE / INITIAL_DF_SIZE
+        AVG_TIME_PER_OPERATION = PROCESS_TIME / SUCCESSFUL_ANALYSES
 
-
-        # Output status.
-        print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
 
         # Record process dataset statistics.
         statistics = (INITIAL_DF_SIZE, FINAL_DF_SIZE,
                       CATEGORIES_ANALYZED, SENTIMENTS_ANALYZED,
                       DROPPED_ROWS_COUNT, PROCESS_TIME,
-                      DATA_LOSS, DATA_LOSS_PERCENTAGE)
+                      DATA_LOSS, DATA_LOSS_PERCENTAGE, AVG_TIME_PER_OPERATION)
 
 
         # Calculate 'DF' statistics.
         self.calculate_statistics(statistics)
 
 
+        # Prepare 'DF' for JSON serialization.
+        self.prepare_dataframe(organize= True)
+
+
+        # Record the DataFrame to a JSON file if 'record' is True.
+        if record:
+
+            # Define the file location.
+            path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json'
+
+            # Output to JSON file.
+            self.DF.to_json(path)
+
+
         # Output status.
-        print('Finished.\n')
+        print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
 
 
         return self
-
-    # [End Class: DataProcessor] #
 
 
 
@@ -808,19 +832,15 @@ class DataProcessor:
         PROCESS_TIME = str(params[5])
         DATA_LOSS = str(params[6])
         DATA_LOSS_PERCENTAGE = str(params[7])
-
-
-        """ Define statistics. """
-
-
+        AVG_TIME_PER_OPERATION = str(params[8])
 
 
         # Output statistics.
         path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/statistics.txt'
         with open(path, 'w+') as f:
 
-            f.write("Initial DataFrame size: " + INITIAL_DF_SIZE + "\n")
-            f.write('Final DataFrame size: ' + FINAL_DF_SIZE + "\n")
+            f.write('Initial DataFrame length: ' + INITIAL_DF_SIZE + "\n")
+            f.write('Final DataFrame length: ' + FINAL_DF_SIZE + "\n")
 
             f.write('Amount of Categories analyzed: ' + CATEGORIES_ANALYZED + "\n")
             f.write('Amount of Sentiments analyzed: ' + SENTIMENTS_ANALYZED + "\n")
@@ -830,8 +850,76 @@ class DataProcessor:
 
             f.write('Kept: ' + DATA_LOSS_PERCENTAGE + ' percent.' + "\n")
             f.write('Processing time: ' + PROCESS_TIME + ' seconds.' + "\n")
+            f.write('Average time per operation: ' + AVG_TIME_PER_OPERATION + ' seconds.' + "\n")
 
 
+        return 0
+
+
+
+    # [End Class: DataProcessor] #
+
+
+
+
+
+
+# noinspection PyCompatibility
+def build_simply(path: str) -> pandas.DataFrame:
+    """
+    Builds a DataFrame with correct respective configurations by loading from JSON file.
+
+    :origin: 'DataCleaner.py'
+    :return: The meta-DataFrame.
+    """
+
+    # Load meta-DataFrame from JSON file.
+    df: pandas.DataFrame = pandas.read_json(path)
+
+
+    # Sort the DataFrame's index.
+    df = df.sort_index(axis=0)
+
+
+    # Perform final check for duplicated DataFrame rows.
+    df = df.drop_duplicates(subset='id', keep='first')
+
+
+    # Perform final check for Dataframe row organization.
+    df = df.reindex_axis(
+        (
+            'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed', 'body',
+            'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
+            'created', 'date_created', 'time_created'
+        ),
+        axis=1
+    )
+
+
+    return df
+
+
+
+def build_run():
+    """
+
+    :return:
+    """
+
+    # dp = DataProcessor().prepare_dataframe(organize= False).resize_dataframe(6000)
+
+    # dp.process_dataframe(which='base', record=True).organize_dataframe(action='reindex')
+
+    # # Test.
+    # df = build_simply(
+    #     '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json')
+
+    # print(df.to_string())
+
+    # dp.view_dataframe()
+
+
+    return 0
 
 
 
@@ -842,14 +930,7 @@ def main():
     """
 
 
-    dp = DataProcessor().prepare_dataframe().resize_dataframe(5)
-
-
-    dp.process_dataframe(which= 'base').organize_dataframe(action='reindex')
-
-
-    # dp.view_dataframe()
-
+    build_simply('')
 
 
 

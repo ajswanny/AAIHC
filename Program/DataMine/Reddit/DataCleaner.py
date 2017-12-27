@@ -446,16 +446,20 @@ def build_all(return_df: bool, record: bool):
 
 
 # noinspection PyCompatibility
-def build_simply() -> pandas.DataFrame:
+def build_simply(file_path: str) -> pandas.DataFrame:
     """
     Builds the meta-DataFrame by loading from JSON file.
 
     :return: The meta-DataFrame.
     """
 
+    # Define normal-function JSON file pat.h
+    if file_path == 'normal':
+        file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+
+
     # Load meta-DataFrame from JSON file.
-    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
-    df: pandas.DataFrame = pandas.read_json(path)
+    df: pandas.DataFrame = pandas.read_json(file_path)
 
 
     # Sort the DataFrame's index.
