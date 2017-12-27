@@ -449,6 +449,7 @@ def build_all(return_df: bool, record: bool):
 def build_simply() -> pandas.DataFrame:
     """
     Builds the meta-DataFrame by loading from JSON file.
+
     :return: The meta-DataFrame.
     """
 

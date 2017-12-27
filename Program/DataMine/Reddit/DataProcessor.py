@@ -644,9 +644,11 @@ class DataProcessor:
 
 
         # Define constants.
-        INITIAL_DF_SIZE = 24062
+        INITIAL_DF_SIZE = 48012
         FINAL_DF_SIZE = 0
-        DROP_COUNT = 0
+        CATEGORIES_ANALYZED = 0
+        SENTIMENTS_ANALYZED = 0
+        DROPPED_ROWS_COUNT = 0
 
 
         if which == 'base':
@@ -728,11 +730,17 @@ class DataProcessor:
                     # Append sentiment magnitude to 'DF'.
                     self.DF.loc[index, 'sentiment_magnitude'] = sentiment_analysis[1]
 
-                # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration'.
+
+                    # Redefine constants.
+                    CATEGORIES_ANALYZED += 1
+                    SENTIMENTS_ANALYZED += 1
+
+                # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration' errors.
                 except (google.api_core.exceptions.InvalidArgument, StopIteration):
 
-                    # Increment 'DROP_COUNT' to record new row-drop.
-                    DROP_COUNT += 1
+                    # Increment 'DROPPED_ROWS_COUNT' to record new row-drop.
+                    DROPPED_ROWS_COUNT += 1
+
 
                     # Drop the index of the argument that raised the exception.
                     self.DF.drop(index, inplace=True)
@@ -749,9 +757,28 @@ class DataProcessor:
         # End the timer.
         clock_end = time.time()
 
+        # Define processing time.
+        PROCESS_TIME = clock_end - clock_start
+
+
+        # Redefine constants.
+        FINAL_DF_SIZE = self.DF.shape[0]
+        DATA_LOSS = INITIAL_DF_SIZE - FINAL_DF_SIZE
+        DATA_LOSS_PERCENTAGE = FINAL_DF_SIZE / INITIAL_DF_SIZE
+
 
         # Output status.
         print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
+
+        # Record process dataset statistics.
+        statistics = (INITIAL_DF_SIZE, FINAL_DF_SIZE,
+                      CATEGORIES_ANALYZED, SENTIMENTS_ANALYZED,
+                      DROPPED_ROWS_COUNT, PROCESS_TIME,
+                      DATA_LOSS, DATA_LOSS_PERCENTAGE)
+
+
+        # Calculate 'DF' statistics.
+        self.calculate_statistics(statistics)
 
 
         # Output status.
@@ -764,6 +791,48 @@ class DataProcessor:
 
 
 
+    @staticmethod
+    def calculate_statistics(params: tuple):
+        """
+        Calculates the statistics for 'DF'.
+
+        :return:
+        """
+
+        # Define arguments.
+        INITIAL_DF_SIZE = str(params[0])
+        FINAL_DF_SIZE = str(params[1])
+        CATEGORIES_ANALYZED = str(params[2])
+        SENTIMENTS_ANALYZED = str(params[3])
+        DROPPED_ROWS_COUNT = str(params[4])
+        PROCESS_TIME = str(params[5])
+        DATA_LOSS = str(params[6])
+        DATA_LOSS_PERCENTAGE = str(params[7])
+
+
+        """ Define statistics. """
+
+
+
+
+        # Output statistics.
+        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/statistics.txt'
+        with open(path, 'w+') as f:
+
+            f.write("Initial DataFrame size: " + INITIAL_DF_SIZE + "\n")
+            f.write('Final DataFrame size: ' + FINAL_DF_SIZE + "\n")
+
+            f.write('Amount of Categories analyzed: ' + CATEGORIES_ANALYZED + "\n")
+            f.write('Amount of Sentiments analyzed: ' + SENTIMENTS_ANALYZED + "\n")
+
+            f.write('Amount of rows dropped: ' + DROPPED_ROWS_COUNT + "\n")
+            f.write('Total data loss: ' + DATA_LOSS + ' rows.' + "\n")
+
+            f.write('Kept: ' + DATA_LOSS_PERCENTAGE + ' percent.' + "\n")
+            f.write('Processing time: ' + PROCESS_TIME + ' seconds.' + "\n")
+
+
+
 
 
 def main():
@@ -773,13 +842,10 @@ def main():
     """
 
 
-    dp = DataProcessor().prepare_dataframe()
+    dp = DataProcessor().prepare_dataframe().resize_dataframe(5)
 
 
-    df = dp.DF
-
-
-    # dp.process_dataframe(which= 'base').organize_dataframe(action='reindex')
+    dp.process_dataframe(which= 'base').organize_dataframe(action='reindex')
 
 
     # dp.view_dataframe()
