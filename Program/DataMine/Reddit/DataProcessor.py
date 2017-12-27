@@ -3,6 +3,7 @@ DataProcessor - Version 0.2
 Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
+# TODO: Finish documentation.
 
 # Import dependencies.
 from Reddit import DataCleaner
@@ -248,7 +249,7 @@ class DataProcessor:
 
     def resize_dataframe(self, index_cap: int):
         """
-        Resizes 'DF', including all data with index below 'index_cap'.
+        Re-sizes 'DF', including all data with index below 'index_cap'.
         :param index_cap:
         :return:
         """
@@ -628,11 +629,13 @@ class DataProcessor:
 
 
 
+    # TODO: Substantial optimization required.
     def process_dataframe(self, which: str):
         """
         Processes the entire base DataFrame: 'DF'. Using the Google Natural Language API, 'process_dataframe' generates
         Category classification and Sentiment analysis for each value of the 'body' Series and appends it to 'DF'
         inplace. Moreover, the algorithm run-time is recorded and displayed upon completion.
+
         :return:
         """
 
@@ -641,7 +644,7 @@ class DataProcessor:
 
 
         # Define constants.
-        INITIAL_DF_SIZE = 48627
+        INITIAL_DF_SIZE = 24062
         FINAL_DF_SIZE = 0
         DROP_COUNT = 0
 
@@ -755,8 +758,6 @@ class DataProcessor:
         print('Finished.\n')
 
 
-
-
         return self
 
     # [End Class: DataProcessor] #
@@ -776,21 +777,6 @@ def main():
 
 
     df = dp.DF
-
-    # print(df.info(), '\n\n')
-
-    # df = df.drop_duplicates(subset='id', keep=False)
-
-    print(df.info())
-
-
-
-    # print(dfx.info(), '\n\n')
-
-    # print(dfx.to_string())
-
-
-    # dp.resize_dataframe(5)
 
 
     # dp.process_dataframe(which= 'base').organize_dataframe(action='reindex')

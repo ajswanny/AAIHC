@@ -66,7 +66,7 @@ class DataCollector:
             self.submission_ids.append(arg)
 
 
-    def build_json_data(self, submission_to_serialize):
+    def build_data(self, submission_to_serialize):
 
         try:
             # Begin collecting data from the previously added "Submission".
@@ -160,7 +160,7 @@ data.add_subreddit('news')
 # Add submission.
 data.add_submissions('news', '79v2cg')
 
-data.build_json_data(submission_to_serialize='news-79v2cg')
+data.build_data(submission_to_serialize='news-79v2cg')
 
 
 print('\n\n')

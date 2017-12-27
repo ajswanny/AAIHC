@@ -4,6 +4,7 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
 # TODO: Redefine implementation to force functions to work on given DataFrames, rather than always the base DataFrame.
+# TODO: Finish documentation.
 
 import numpy
 import pandas
@@ -25,7 +26,7 @@ class DataCleaner:
     """
 
 
-    """ Declare the class's fields. """
+    """ Declare the class data fields. """
     dataframe: pandas.DataFrame
     super_dataframe: pandas.DataFrame
 
@@ -479,13 +480,6 @@ def main():
 
     # Build and records meta-DataFrame to JSON file.
     # build_all(return_df= False, record= True)
-
-
-    df = build_simply()
-
-    print(df.info())
-
-
 
 
 main()
