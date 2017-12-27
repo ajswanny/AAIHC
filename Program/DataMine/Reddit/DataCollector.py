@@ -103,11 +103,13 @@ class DataCollector:
                 #
                 self.submissions[submission_name] = self.reddit_instance.submission(id=arg)
 
+
                 # Output status.
                 print("\t" + submission_name)
 
 
-        # Add the top 50 Submissions for the given Subreddit if 'which' is true.
+        # Add the Top: All Time Submissions for the given Subreddit if 'which' is true; amount determined by the
+        # parameter 'limit'.
         if which == 'full':
 
             # Add submissions.
@@ -139,6 +141,7 @@ class DataCollector:
 
 
         return self
+
 
 
     def prepare_build(self):
@@ -302,23 +305,12 @@ def run_build():
     data_collector.add_submissions(subreddit_name='news', which='full', limit= 100, recursion=False)
 
 
-    # count = 0
-    # for key in data_collector.submissions:
-    #
-    #     data_collector.submissions.pop(key)
-    #
-    #     count += 1
-    #
-    #     if count == 49: break
-
-
-
     # Create a reference to the used Submission object IDs for later reference.
-    data_collector.build_json_indexes(file_path= 'default')
+    # data_collector.build_json_indexes(file_path= 'default')
 
 
     # Collect the data.
-    # data_collector.build_data()
+    data_collector.build_data()
 
 
     return 0

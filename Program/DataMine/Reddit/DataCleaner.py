@@ -92,23 +92,34 @@ class DataCleaner:
 
 
 
-    def init_json_map(self):
+    # FLAG
+    def init_json_map(self, file_path: str):
         """
         Defines the JSON file locations respective to each "Submission" object.
         :return:
         """
 
-        submission_ids = []
+        global submission_ids
+
+
+        # Define file location.
+        if file_path == 'default':
+
+            file_path = \
+                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index_v0.txt'
+
 
         # Read the JSON file locations from the source file.
-        with open('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths') as f:
+        with open(file_path) as f:
 
             # Read, organize, and record input.
-            content = f.readlines()
+            file_content = f.readlines()
 
-            content = (x.strip() for x in content)
 
-            submission_ids = content
+            file_content = (line.strip() for line in file_content)
+
+
+            submission_ids = file_content
 
 
         # Define the JSON file locations dict.
