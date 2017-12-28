@@ -1,6 +1,7 @@
 Initial DataFrame length: 48012
 Final DataFrame length: 2150
-Processed until row of index: 6000
+*Processed until row of index: 6000
+
 Amount of Categories analyzed: 2150
 Amount of Sentiments analyzed: 2150
 Amount of rows dropped: 3851

@@ -3,6 +3,8 @@ DataProcessor - Version 0.2
 Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
+# BOF
+
 # TODO: Finish documentation.
 
 # Import dependencies.
@@ -21,6 +23,7 @@ Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
 
 from google.cloud import language
 import google.api_core.exceptions
+import grpc._channel
 
 import numpy
 import six
@@ -190,6 +193,9 @@ class DataProcessor:
     # The DataFrame version of 'body'.
     body_df = pandas.DataFrame
 
+    # The version of the instance.
+    version = int()
+
 
     def __init__(self):
         """
@@ -241,21 +247,6 @@ class DataProcessor:
         # Output a cell.
         elif len(args) == 2:
             print(self.DF[args[0]][args[1]])
-
-
-        return self
-
-
-
-    def resize_dataframe(self, before: int, after: int):
-        """
-        Re-sizes 'DF', including all data with index below 'index_cap'.
-
-        :return:
-        """
-
-        # Resize 'DF'.
-        self.DF = self.DF.truncate(before= before, after= after)
 
 
         return self
@@ -749,7 +740,8 @@ class DataProcessor:
                     SUCCESSFUL_ANALYSES += 1
 
                 # Catch 'InvalidArgument' errors caused by arguments of insufficient length or 'StopIteration' errors.
-                except (google.api_core.exceptions.InvalidArgument, StopIteration):
+                except (google.api_core.exceptions.InvalidArgument,
+                        StopIteration):
 
                     # Increment 'DROPPED_ROWS_COUNT' to record new row-drop.
                     DROPPED_ROWS_COUNT += 1
@@ -765,6 +757,20 @@ class DataProcessor:
 
                     # Continue loop.
                     continue
+
+                # Catch exception indicating resource exhaustion.
+                except google.api_core.exceptions.TooManyRequests:
+
+                        # Delay processing.
+                        time.sleep(360)
+
+
+                        # Continue loop.
+                        continue
+
+                finally:
+
+                        break
 
 
         # End the timer.
@@ -801,7 +807,8 @@ class DataProcessor:
         if record:
 
             # Define the file location.
-            path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json'
+            # TODO: Implement DataFrame version selection.
+            path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
 
             # Output to JSON file.
             self.DF.to_json(path)
@@ -836,7 +843,8 @@ class DataProcessor:
 
 
         # Output statistics.
-        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/statistics.txt'
+        # TODO: Implement DataFrame version selection.
+        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/statistics.txt'
         with open(path, 'w+') as f:
 
             f.write('Initial DataFrame length: ' + INITIAL_DF_SIZE + "\n")
@@ -865,7 +873,8 @@ class DataProcessor:
 
 
 # noinspection PyCompatibility
-def build_simply(path: str) -> pandas.DataFrame:
+# TODO: Implement DataFrame version selection.
+def build_simply(file_path: str) -> pandas.DataFrame:
     """
     Builds a DataFrame with correct respective configurations by loading from JSON file.
 
@@ -873,8 +882,14 @@ def build_simply(path: str) -> pandas.DataFrame:
     :return: The meta-DataFrame.
     """
 
+    # Define the normal operation file location.
+    if file_path == 'normal':
+        file_path = \
+            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
+
+
     # Load meta-DataFrame from JSON file.
-    df: pandas.DataFrame = pandas.read_json(path)
+    df: pandas.DataFrame = pandas.read_json(file_path)
 
 
     # Sort the DataFrame's index.
@@ -900,23 +915,54 @@ def build_simply(path: str) -> pandas.DataFrame:
 
 
 
-def build_run():
+# TODO: Implement DataFrame version selection.
+def build_run(version: int):
     """
+    NOTE:
+        This portion of the program currently uses absolute paths to store the processed DataFrame and its statistics.
+        File storing locations have been modified and defined absolutely due to and unforeseen error cause by the
+        Google Cloud Platform Natural Language API which has necessitated running the program once more but in this
+        second iteration processing the DataFrame after the index 6000 (the index upon which the error was given).
+
+        When time permits, this script must be substantially optimized.
 
     :return:
     """
 
-    # dp = DataProcessor().prepare_dataframe(organize= False).resize_dataframe(6000)
+    if version is 0:
+        """
+        The first iteration of the program run; December 26, 2017. 
+        This version failed due to an unexpected error returned by the Google Cloud Platform Natural Language API:
+                
+                google.api_core.exceptions.TooManyRequests
+             
+        """
 
-    # dp.process_dataframe(which='base', record=True).organize_dataframe(action='reindex')
+        df = DataProcessor().prepare_dataframe(organize= False)
 
-    # # Test.
-    # df = build_simply(
-    #     '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json')
+        df.process_dataframe(which='base', record= True).organize_dataframe(action='reindex')
 
-    # print(df.to_string())
 
-    # dp.view_dataframe()
+
+    if version is 1:
+        """
+        The seconds iteration of the program run; December 27, 2017.
+        
+        """
+
+        df = DataProcessor().prepare_dataframe(organize= False)
+
+        df.DF = df.DF.truncate(before= 6000)
+
+        df.process_dataframe(which= 'base', record= True).organize_dataframe(action= 'reindex')
+
+
+    # Test.
+    df = build_simply(file_path= 'normal')
+
+    print(df.to_string())
+
+    df.view_dataframe()
 
 
     return 0
@@ -929,16 +975,20 @@ def main():
     :return:
     """
 
+    # df = build_simply(file_path= 'normal')
 
-    build_simply('')
+    # df = df.astype({'category': "category"})
 
+    # print(df.category.head())
+
+
+    build_run(version=1)
 
 
     return 0
 
 
-
-
-
-
 main()
+
+
+# EOF

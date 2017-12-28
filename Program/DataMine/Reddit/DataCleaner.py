@@ -3,6 +3,8 @@ DataCleaner - Version 0.1
 Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
+# BOF
+
 # TODO: Redefine implementation to force functions to work on given DataFrames, rather than always the base DataFrame.
 # TODO: Finish documentation.
 
@@ -10,10 +12,6 @@ import numpy
 import pandas
 # Import necessary modules.
 from unidecode import unidecode
-
-
-# import pprint
-
 
 
 # [Begin Class: DataCleaner] #

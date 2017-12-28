@@ -3,6 +3,8 @@ DataCollector - Version 0.1
 Copyright (c) 2017, Alexander Joseph Swanson Villares
 """
 
+# BOF
+
 # TODO: Finish documentation.
 
 import json
@@ -329,11 +331,6 @@ def main():
 
 
 if __name__ == "__main__": main()
-
-
-
-
-
 
 
 
