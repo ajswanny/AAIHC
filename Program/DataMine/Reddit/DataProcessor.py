@@ -28,7 +28,10 @@ import grpc._channel
 import numpy
 import six
 import pandas
+import json
 import time
+import io
+import os
 
 
 # class MachineLearningModel:
@@ -356,7 +359,7 @@ class DataProcessor:
 
     @staticmethod
     def generate_category(text: str, verbose: bool):
-        """Classify the input text into categories. """
+        """ Classify the input text into categories. """
 
         # Define dict to hold result of analysis.
         result = dict()
@@ -395,7 +398,6 @@ class DataProcessor:
             for category in categories:
 
                 print(u'=' * 20)
-                # print('Text: {}'.format(text))
                 print(u'{:<16}: {}'.format('category', category.name))
                 print(u'{:<16}: {}'.format('confidence', category.confidence))
 
@@ -428,6 +430,7 @@ class DataProcessor:
 
 
         return _categories
+
 
     """ {End: 'Google, Inc.' Work] """
 
@@ -508,10 +511,6 @@ class DataProcessor:
                         # {category.name: category.confidence}, so that they can
                         # be treated as a sparse vector.
                         result[category.name] = category.confidence
-
-
-                    # Run classify() to get 'Category' analysis.
-                    # classification = self.generate_category(text, verbose=False)
 
 
                     # Split the identified categories.
@@ -637,6 +636,8 @@ class DataProcessor:
         Processes the entire base DataFrame: 'DF'. Using the Google Natural Language API, 'process_dataframe' generates
         Category classification and Sentiment analysis for each value of the 'body' Series and appends it to 'DF'
         inplace. Moreover, the algorithm run-time is recorded and displayed upon completion.
+
+        Detail: Not functional. GCP Natural Language API not returning content classification.
 
         :return:
         """
@@ -768,7 +769,7 @@ class DataProcessor:
                         # Continue loop.
                         continue
 
-                finally:
+                except Exception as e:
 
                         break
 
@@ -871,56 +872,12 @@ class DataProcessor:
 
 
 
-
-# noinspection PyCompatibility
-# TODO: Implement DataFrame version selection.
-def build_simply(file_path: str) -> pandas.DataFrame:
-    """
-    Builds a DataFrame with correct respective configurations by loading from JSON file.
-
-    :origin: 'DataCleaner.py'
-    :return: The meta-DataFrame.
-    """
-
-    # Define the normal operation file location.
-    if file_path == 'normal':
-        file_path = \
-            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
-
-
-    # Load meta-DataFrame from JSON file.
-    df: pandas.DataFrame = pandas.read_json(file_path)
-
-
-    # Sort the DataFrame's index.
-    df = df.sort_index(axis=0)
-
-
-    # Perform final check for duplicated DataFrame rows.
-    df = df.drop_duplicates(subset='id', keep='first')
-
-
-    # Perform final check for Dataframe row organization.
-    df = df.reindex_axis(
-        (
-            'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed', 'body',
-            'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
-            'created', 'date_created', 'time_created'
-        ),
-        axis=1
-    )
-
-
-    return df
-
-
-
 # TODO: Implement DataFrame version selection.
 def build_run(version: int):
     """
     NOTE:
         This portion of the program currently uses absolute paths to store the processed DataFrame and its statistics.
-        File storing locations have been modified and defined absolutely due to and unforeseen error cause by the
+        File storing locations have been modified and defined absolutely due to and unforeseen error caused by the
         Google Cloud Platform Natural Language API which has necessitated running the program once more but in this
         second iteration processing the DataFrame after the index 6000 (the index upon which the error was given).
 
@@ -946,13 +903,13 @@ def build_run(version: int):
 
     if version is 1:
         """
-        The seconds iteration of the program run; December 27, 2017.
+        The second iteration of the program run; December 27, 2017.
         
         """
 
-        df = DataProcessor().prepare_dataframe(organize= False)
+        data = DataProcessor().prepare_dataframe(organize= False)
 
-        df.DF = df.DF.truncate(before= 6000)
+        df.DF = data.DF.truncate(before= 6000)
 
         df.process_dataframe(which= 'base', record= True).organize_dataframe(action= 'reindex')
 
@@ -962,10 +919,51 @@ def build_run(version: int):
 
     print(df.to_string())
 
-    df.view_dataframe()
-
 
     return 0
+
+
+
+# noinspection PyCompatibility
+# TODO: Implement DataFrame version selection.
+def build_simply(file_path: str) -> pandas.DataFrame:
+    """
+    Builds a DataFrame with correct respective configurations by loading from JSON file.
+
+    :origin: 'DataCleaner.py'
+    :return: The meta-DataFrame.
+    """
+
+    # Define the normal operation file location.
+    if file_path == 'normal':
+        file_path = \
+            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
+
+
+    # Load meta-DataFrame from JSON file.
+    df: pandas.DataFrame = pandas.read_json(file_path)
+
+
+    # Sort the DataFrame's index.
+    # df = df.sort_index(axis=0)®
+
+
+    # Perform final check for duplicated DataFrame rows.
+    df = df.drop_duplicates(subset='id', keep='first')
+
+
+    # Perform final check for Dataframe row organization.
+    df = df.reindex_axis(
+        (
+            'id', 'parent_id', 'submission_id', 'subreddit_name_prefixed', 'body',
+            'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
+            'created', 'date_created', 'time_created'
+        ),
+        axis=1
+    )
+
+
+    return df
 
 
 
@@ -981,8 +979,8 @@ def main():
 
     # print(df.category.head())
 
+    data = DataProcessor()
 
-    build_run(version=1)
 
 
     return 0
