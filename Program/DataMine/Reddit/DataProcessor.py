@@ -631,7 +631,7 @@ class DataProcessor:
 
 
     # TODO: Substantial optimization required.
-    def process_dataframe(self, which: str, record: bool):
+    def process_dataframe(self, which: str, file_path: str):
         """
         Processes the entire base DataFrame: 'DF'. Using the Google Natural Language API, 'process_dataframe' generates
         Category classification and Sentiment analysis for each value of the 'body' Series and appends it to 'DF'
@@ -668,18 +668,18 @@ class DataProcessor:
             #   - Note: 'row' necessary for functional iteration (12/24/17).
             for index, row in self.DF.iterrows():
 
+
+                # Get the body text for classification.
+                text = self.DF.loc[index, 'body']
+
+
+                # Define the 'Document' object to be analyzed.
+                document = language.types.Document(
+                    content=text,
+                    type=language.enums.Document.Type.PLAIN_TEXT
+                )
+
                 try:
-
-                    # Get the body text for classification.
-                    text = self.DF.loc[index, 'body']
-
-
-                    # Define the 'Document' object to be analyzed.
-                    document = language.types.Document(
-                        content=text,
-                        type=language.enums.Document.Type.PLAIN_TEXT
-                    )
-
 
                     """ Define Categories for 'DF' """
 
@@ -762,16 +762,20 @@ class DataProcessor:
                 # Catch exception indicating resource exhaustion.
                 except google.api_core.exceptions.TooManyRequests:
 
-                        # Delay processing.
-                        time.sleep(360)
+                    # Delay processing.
+                    time.sleep(360)
 
 
-                        # Continue loop.
-                        continue
+                    # Continue loop.
+                    continue
 
                 except Exception as e:
 
-                        break
+                    break
+
+                if (index % 5000) == 0:
+
+                    self.record_dataframe(file_path= file_path)
 
 
         # End the timer.
@@ -804,19 +808,26 @@ class DataProcessor:
         self.prepare_dataframe(organize= True)
 
 
-        # Record the DataFrame to a JSON file if 'record' is True.
-        if record:
-
-            # Define the file location.
-            # TODO: Implement DataFrame version selection.
-            path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
-
-            # Output to JSON file.
-            self.DF.to_json(path)
+        # Record the DataFrame to a JSON file.
+        self.record_dataframe(file_path= file_path)
 
 
         # Output status.
         print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
+
+
+        return self
+
+
+
+    def record_dataframe(self, file_path: str):
+        """
+        Records the DataFrame as a JSON file.
+
+        :return:
+        """
+
+        self.DF.to_json(path_or_buf= file_path)
 
 
         return self
@@ -886,6 +897,8 @@ def build_run(version: int):
     :return:
     """
 
+    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
+
     if version is 0:
         """
         The first iteration of the program run; December 26, 2017. 
@@ -897,7 +910,7 @@ def build_run(version: int):
 
         df = DataProcessor().prepare_dataframe(organize= False)
 
-        df.process_dataframe(which='base', record= True).organize_dataframe(action='reindex')
+        df.process_dataframe(which='base', file_path= path).organize_dataframe(action='reindex')
 
 
 
@@ -909,9 +922,11 @@ def build_run(version: int):
 
         data = DataProcessor().prepare_dataframe(organize= False)
 
-        df.DF = data.DF.truncate(before= 6000)
 
-        df.process_dataframe(which= 'base', record= True).organize_dataframe(action= 'reindex')
+        data.DF = data.DF.truncate(before= 6000)
+
+
+        data.process_dataframe(which= 'base', file_path= path)
 
 
     # Test.
@@ -945,7 +960,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 
     # Sort the DataFrame's index.
-    # df = df.sort_index(axis=0)®
+    df = df.sort_index(axis=0)
 
 
     # Perform final check for duplicated DataFrame rows.
@@ -980,6 +995,27 @@ def main():
     # print(df.category.head())
 
     data = DataProcessor()
+
+
+
+
+    dfx = build_simply(file_path='normal')
+
+    print(dfx.info())
+
+    #
+    # t_one = dfx.body[1676]
+    # t_two = dfx.body[2900]
+    # #
+    # # data.generate_sentiment(text= t_two, verbose=True)
+    #
+    # # data.generate_category(text= t_two, verbose= True)
+    # #
+    # # print('\n\n')
+    # #
+    # print(dfx.head(1800).to_string())
+    #
+    # # print(dfx.info())
 
 
 
