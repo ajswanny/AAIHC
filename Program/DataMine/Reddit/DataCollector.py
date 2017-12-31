@@ -304,7 +304,7 @@ def run_build():
 
 
     # Create a map of the Submissions in the 'news' Subreddit.
-    data_collector.add_submissions(subreddit_name='news', which='full', limit= 100, recursion=False)
+    data_collector.add_submissions(subreddit_name='news', which='full', limit= 100, recursion= False)
 
 
     # Create a reference to the used Submission object IDs for later reference.
@@ -312,7 +312,7 @@ def run_build():
 
 
     # Collect the data.
-    # data_collector.build_data()
+    data_collector.build_data()
 
 
     return 0

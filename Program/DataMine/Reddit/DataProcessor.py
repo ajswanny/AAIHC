@@ -910,7 +910,7 @@ def build_run(version: int):
 
         df = DataProcessor().prepare_dataframe(organize= False)
 
-        df.process_dataframe(which='base', file_path= path).organize_dataframe(action='reindex')
+        df.process_dataframe(which= 'base', file_path= path).organize_dataframe(action= 'reindex')
 
 
 
@@ -959,12 +959,16 @@ def build_simply(file_path: str) -> pandas.DataFrame:
     df: pandas.DataFrame = pandas.read_json(file_path)
 
 
+    # Define correct data types.
+    df = df.astype({'category': "category"})
+
+
     # Sort the DataFrame's index.
-    df = df.sort_index(axis=0)
+    df = df.sort_index(axis= 0)
 
 
     # Perform final check for duplicated DataFrame rows.
-    df = df.drop_duplicates(subset='id', keep='first')
+    df = df.drop_duplicates(subset= 'id', keep='first')
 
 
     # Perform final check for Dataframe row organization.
@@ -974,7 +978,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
             'ups', 'downs', 'score', 'controversiality', 'category', 'sentiment_score', 'sentiment_magnitude',
             'created', 'date_created', 'time_created'
         ),
-        axis=1
+        axis= 1
     )
 
 
@@ -988,32 +992,8 @@ def main():
     :return:
     """
 
-    # df = build_simply(file_path= 'normal')
-
-
-    # print(df.category.head())
-
-    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_2/DF_v2.json'
-
-
-    data = DataProcessor()
-
-    dfx = build_simply(file_path= 'normal')
-
-    dfx = dfx.astype({'category': "category"})
-    #
-    # dfx.to_json(path_or_buf= path)
-    #
-
-    # dfx = build_simply(file_path= 'normal')
-    #
-    print(dfx.info())
-
 
     return 0
-
-
-main()
 
 
 # EOF
