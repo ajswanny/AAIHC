@@ -952,7 +952,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
     # Define the normal operation file location.
     if file_path == 'normal':
         file_path = \
-            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
+            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_2/DF_v2.json'
 
 
     # Load meta-DataFrame from JSON file.
@@ -990,33 +990,24 @@ def main():
 
     # df = build_simply(file_path= 'normal')
 
-    # df = df.astype({'category': "category"})
 
     # print(df.category.head())
 
+    path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_2/DF_v2.json'
+
+
     data = DataProcessor()
 
+    dfx = build_simply(file_path= 'normal')
 
+    dfx = dfx.astype({'category': "category"})
+    #
+    # dfx.to_json(path_or_buf= path)
+    #
 
-
-    dfx = build_simply(file_path='normal')
-
+    # dfx = build_simply(file_path= 'normal')
+    #
     print(dfx.info())
-
-    #
-    # t_one = dfx.body[1676]
-    # t_two = dfx.body[2900]
-    # #
-    # # data.generate_sentiment(text= t_two, verbose=True)
-    #
-    # # data.generate_category(text= t_two, verbose= True)
-    # #
-    # # print('\n\n')
-    # #
-    # print(dfx.head(1800).to_string())
-    #
-    # # print(dfx.info())
-
 
 
     return 0
