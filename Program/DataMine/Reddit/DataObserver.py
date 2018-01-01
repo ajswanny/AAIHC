@@ -1,11 +1,7 @@
 # BOF
 
 # Import necessary modules.
-from google.cloud import language
-from Reddit import DataCleaner
-
 import pandas
-import six
 
 
 
@@ -21,8 +17,12 @@ class DataObserver:
 # noinspection PyCompatibility
 def main():
 
-    # DataObserve = DataObserver()
+    df = pandas.DataFrame()
 
+    df = pandas.read_json(
+        '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_2/DF_v2.json')
+
+    print(df.info())
 
     return 0
 

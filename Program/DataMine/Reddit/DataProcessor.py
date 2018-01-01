@@ -856,7 +856,7 @@ class DataProcessor:
 
         # Output statistics.
         # TODO: Implement DataFrame version selection.
-        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/statistics.txt'
+        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/info.txt'
         with open(path, 'w+') as f:
 
             f.write('Initial DataFrame length: ' + INITIAL_DF_SIZE + "\n")
