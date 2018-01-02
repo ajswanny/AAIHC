@@ -1,6 +1,7 @@
 # BOF
 
 # Import necessary modules.
+import DataProcessor
 import pandas
 
 
@@ -10,6 +11,16 @@ class DataObserver:
     The DataObserver class generates the data structures for appropriate observation and analysis.
     """
 
+    df = pandas.DataFrame()
+
+    def __init__(self):
+        """
+
+        """
+
+        # Define the base DataFrame.
+        self.df = DataProcessor.build_simply(file_path= 'normal')
+
 
 
 
@@ -17,12 +28,6 @@ class DataObserver:
 # noinspection PyCompatibility
 def main():
 
-    df = pandas.DataFrame()
-
-    df = pandas.read_json(
-        '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_2/DF_v2.json')
-
-    print(df.info())
 
     return 0
 
@@ -30,6 +35,5 @@ def main():
 
 
 
-main()
 
 # EOF

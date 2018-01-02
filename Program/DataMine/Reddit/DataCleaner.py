@@ -104,7 +104,7 @@ class DataCleaner:
         if index_file_path == 'default':
 
             index_file_path = \
-                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index_v0.txt'
+                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index.txt'
 
 
         # Read the JSON file locations from the source file.

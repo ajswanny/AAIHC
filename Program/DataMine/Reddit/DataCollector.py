@@ -8,8 +8,11 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 # TODO: Finish documentation.
 
 import json
-import praw
+import time
 from datetime import datetime
+
+import praw
+import prawcore.exceptions
 
 
 # For Raspberry Pi integration:
@@ -55,7 +58,7 @@ class DataCollector:
 
 
 
-    def add_subreddit(self, subreddit_id: str):
+    def add_subreddit(self, subreddit_name: str):
         """
         Add a "Subreddit" object to the Reddit instance.
 
@@ -63,11 +66,11 @@ class DataCollector:
         :return:
         """
 
-        self.subreddits[subreddit_id] = self.reddit_instance.subreddit(subreddit_id)
+        self.subreddits[subreddit_name] = self.reddit_instance.subreddit(subreddit_name)
 
-        print("Successfully added subreddit: " + subreddit_id)
+        print("Successfully added subreddit: " + subreddit_name)
 
-        self.subreddit_names.append(subreddit_id)
+        self.subreddit_names.append(subreddit_name)
 
 
         return self
@@ -115,7 +118,7 @@ class DataCollector:
         if which == 'full':
 
             # Add submissions.
-            for submission in self.subreddits['news'].top(time_filter= 'all', limit= limit):
+            for submission in self.subreddits[subreddit_name].top(time_filter= 'all', limit= limit):
 
                 # Define the ID of the Submission respective to the current loop step.
                 submission_id = submission.id
@@ -125,7 +128,7 @@ class DataCollector:
                 # given 'limit'.
                 self.add_submissions(
                     submission_id,
-                    subreddit_name= 'news',
+                    subreddit_name= subreddit_name,
                     which= 'given',
                     limit= limit,
                     recursion= True
@@ -172,21 +175,18 @@ class DataCollector:
 
 
 
-    def build_json_indexes(self, file_path: str):
+    def build_json_indexes(self, build_version: str):
         """
         Creates a file listing all "Submission" IDs for later reference.
 
-        :param file_path:
+        :param build_version:
         :return:
         """
 
         # Define the file location.
-        if file_path == 'default':
-            path = \
-                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index_v0.txt'
+        base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index_v'
 
-        else:
-            path = file_path
+        path = base + build_version + '.txt'
 
 
         # Open the file.
@@ -202,12 +202,15 @@ class DataCollector:
 
 
 
-    def build_data(self):
+    def build_data(self, subreddit_name: str):
         """
         Serializes "Comment" data structures for each "Submission" in the submissions dict.
 
         :return:
         """
+
+        global list_of_items
+
 
         # Define list to filter data to be recorded.
         fields_for_comment_dict = (
@@ -225,41 +228,48 @@ class DataCollector:
         count = 1
         for key in self.submissions:
 
-            # Ensure iteration of every comment. Replace the "More" objects of each submission.
-            self.submissions[key].comments.replace_more(limit=0)
+            try:
+
+                # Ensure iteration of every comment. Replace the "More" objects of each submission.
+                self.submissions[key].comments.replace_more(limit=0)
 
 
-            # Create holder for dicts of comment data.
-            list_of_items = []
+                # Create holder for dicts of comment data.
+                list_of_items = []
 
 
-            # Record desired data fields of each "Comment" object
-            for comment in self.submissions[key].comments.list():
+                # Record desired data fields of each "Comment" object
+                for comment in self.submissions[key].comments.list():
 
-                # Holder for all Comment data fields.
-                to_dict = vars(comment)
-
-
-                # Holder for selected data fields to be recorded.
-                sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
+                    # Holder for all Comment data fields.
+                    to_dict = vars(comment)
 
 
-                # Created recording for date and time of Comment creation.
-                date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
-                sub_dict['date_created'] = date[0]
-                sub_dict['time_created'] = date[1]
+                    # Holder for selected data fields to be recorded.
+                    sub_dict = {field: to_dict[field] for field in fields_for_comment_dict}
 
 
-                # Define 'submission_id' field.
-                sub_dict['submission_id'] = key
+                    # Created recording for date and time of Comment creation.
+                    date = str(datetime.fromtimestamp(vars(comment)['created_utc'])).split()
+                    sub_dict['date_created'] = date[0]
+                    sub_dict['time_created'] = date[1]
 
 
-                # Append constructed data structure to list for later JSON writing.
-                list_of_items.append(sub_dict)
+                    # Define 'submission_id' field.
+                    sub_dict['submission_id'] = key
+
+
+                    # Append constructed data structure to list for later JSON writing.
+                    list_of_items.append(sub_dict)
+
+            # Catch 'timeout' exception; delay processing.
+            except prawcore.exceptions.RequestException:
+
+                time.sleep(60)
 
 
             # Define file location.
-            suffix = 'r(news)_submission-' + self.submissions[key].id + '.json'
+            suffix = 'r(' + subreddit_name + ')_submission-' + self.submissions[key].id + '.json'
             write_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/' + suffix
 
 
@@ -288,7 +298,7 @@ class DataCollector:
 
 
 
-def run_build():
+def run_build(build_version: str, build_subreddit: str):
     """
     Builds a general instance and the data.
 
@@ -296,23 +306,25 @@ def run_build():
     """
 
     # Create an instance of the "DataMiner" class.
-    data_collector = DataCollector('hpTnFWPodmP85w', 'T2rZgWYrmqB_ULSOmIVZVn2ff8Q', "r/praw_tester's research_project")
+    data_collector = DataCollector(client_id= 'hpTnFWPodmP85w',
+                                   client_secret= 'T2rZgWYrmqB_ULSOmIVZVn2ff8Q',
+                                   user_agent= "r/praw_tester's research_project")
 
 
-    # Add the "news" subreddit to the Reddit instance of "data".
-    data_collector.add_subreddit('news')
+    # Add the specified Subreddit to the Reddit instance of "data".
+    data_collector.add_subreddit(subreddit_name= build_subreddit)
 
 
-    # Create a map of the Submissions in the 'news' Subreddit.
-    data_collector.add_submissions(subreddit_name='news', which='full', limit= 100, recursion= False)
+    # Create a dict of the Submissions in the specified Subreddit.
+    data_collector.add_submissions(subreddit_name= build_subreddit, which= 'full', limit= 100, recursion= False)
 
 
     # Create a reference to the used Submission object IDs for later reference.
-    data_collector.build_json_indexes(file_path= 'default')
+    data_collector.build_json_indexes(build_version= build_version)
 
 
     # Collect the data.
-    data_collector.build_data()
+    data_collector.build_data(subreddit_name= build_subreddit)
 
 
     return 0
@@ -324,6 +336,8 @@ def main():
     main.
     :return:
     """
+
+    run_build(build_version= '1', build_subreddit= 'worldnews')
 
 
     return 0

@@ -23,15 +23,11 @@ Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
 
 from google.cloud import language
 import google.api_core.exceptions
-import grpc._channel
 
 import numpy
 import six
 import pandas
-import json
 import time
-import io
-import os
 
 
 # class MachineLearningModel:
@@ -993,7 +989,14 @@ def main():
     """
 
 
+    data = DataProcessor()
+
+    data.generate_sentiment(text= "I hate you.", verbose= True)
+
+
     return 0
+
+main()
 
 
 # EOF
