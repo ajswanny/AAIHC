@@ -28,44 +28,39 @@ class DataCleaner:
     dataframe: pandas.DataFrame
     super_dataframe: pandas.DataFrame
 
-    dataframes: dict
+    dataframes: dict()
 
-    json_path: str
-    default_json_path: str
-    json_paths: dict
+    json_path: str()
+    default_json_path: str()
+    json_paths: dict()
 
 
 
-    def __init__(self, init_super_df: bool, json_path: str, submission_id: str):
+    def __init__(self, init_super_df: bool, json_path: str, run_submission: str):
         """
         Init.
+        Instantiates a 'DataCleaner' class. The base DataFrame, 'dataframe', is dynamically defined to work on data read
+        from the data-set specified. Data is input, set to 'dataframe', processed, and appended to the meta-DataFrame,
+        'super_dataframe'.
+
         :param init_super_df:
         :param json_path:
         :param submission_id:
         """
 
-        # Set the default JSON file location for testing and debugging.
-        self.default_json_path = \
-            '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-news/r(news)_submission-3b6zln.json'
-
 
         # Initialize JSON file locations map.
         self.json_paths = dict()
-        self.init_json_map(index_file_path= 'default')
-
-
-        # Initialize DataFrames collection dict.
-        self.dataframes = dict()
+        self.init_json_map(index_file_id= run_submission)
 
 
         # Define default JSON file location.
         if json_path == 'default':
             self.json_path = self.default_json_path
 
-        # Define "Submission" object-specific JSON file location; append to the 'json_paths' dict field.
-        else:
-            self.json_path = json_path
-            self.json_paths[submission_id] = json_path
+
+        # Initialize DataFrames collection dict.
+        self.dataframes = dict()
 
 
         dataframe_columns = (
@@ -74,24 +69,23 @@ class DataCleaner:
             'created', 'date_created', 'time_created'
         )
 
-        # Create base Dataframe.
+        # Define base Dataframe.
         self.dataframe = pandas.DataFrame(data= numpy.zeros((0, len(dataframe_columns))), columns= dataframe_columns)
 
 
-        # Confirm instantiation.
-        print("DataCleaner instantiated.")
-
-
-        # Clean the base DataFrame and set it to the 'super_dataframe' field in order to initialize the meta-DataFrame.
+        # Set the base DataFrame to the 'super_dataframe' field in order to initialize the meta-DataFrame.
         if init_super_df:
 
             # Initialize the meta-Dataframe.
             self.super_dataframe = self.dataframe
 
 
+        # Confirm instantiation.
+        print("DataCleaner instantiated.")
 
-    # FLAG
-    def init_json_map(self, index_file_path: str):
+
+
+    def init_json_map(self, index_file_id: str):
         """
         Defines the JSON file locations respective to each "Submission" object.
         :return:
@@ -100,14 +94,25 @@ class DataCleaner:
         global submission_ids
 
 
-        # Define file location.
-        if index_file_path == 'default':
+        """ Define file locations. """
 
-            index_file_path = \
-                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/json_paths_index.txt'
+        # Define location for the JSON files index.
+        index_file_path_base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-'
+
+        index_file_path_end = '/json_paths_index.txt'
+
+        index_file_path = index_file_path_base + index_file_id + index_file_path_end
 
 
-        # Read the JSON file locations from the source file.
+        # Define the location for the current working directory.
+        directory_path_base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-'
+
+        directory_path = directory_path_base + index_file_id + '/'
+
+
+        """ Define the JSON file locations dict. """
+
+        # Read in the JSON file indexes.
         with open(index_file_path) as f:
 
             # Read, organize, and record input.
@@ -124,12 +129,11 @@ class DataCleaner:
         for submission_id in submission_ids:
 
             # Create dynamic suffix for each Submission.
-            suffix = 'r(news)_submission-' + submission_id + '.json'
+            suffix = 'r(' + index_file_id + ')_submission-' + submission_id + '.json'
 
 
             # Define the correct absolute path.
-            json_path = \
-                '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-news/' + suffix
+            json_path = directory_path + suffix
 
 
             # Append to JSON file locations dict.
@@ -250,7 +254,7 @@ class DataCleaner:
 
 
 
-    def process(self, process_super: bool, verbose: bool):
+    def process(self, process_super_df: bool, verbose: bool):
         """
         Creates unique DataFrames for all data subsets and appends them to the 'dataframes' dict field. That is,
             the data for each "Submission" object recorded by 'DataCollector'.
@@ -283,7 +287,7 @@ class DataCleaner:
 
 
         # Correctly redefine the meta-DataFrame if 'process_super' is True.
-        if process_super:
+        if process_super_df:
 
             self.process_super_dataframe()
 
@@ -391,9 +395,10 @@ class DataCleaner:
 
 
 
-def build_all(return_df: bool, record: bool):
+def build_run(return_df: bool, record: bool, run_submission: str):
     """
     Builds all base DataFrames and meta-DataFrame.
+    :param run_submission:
     :param return_df:
     :param record:
     :return:
@@ -401,9 +406,9 @@ def build_all(return_df: bool, record: bool):
 
     # Instantiate DataCleaner
     data_clean = DataCleaner(
-        init_super_df=True,
-        json_path='default',
-        submission_id='None'
+        init_super_df= True,
+        json_path= '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-worldnews/r(worldnews)_submission-3aitv7.json',
+        run_submission= run_submission
     )
 
 
@@ -412,7 +417,7 @@ def build_all(return_df: bool, record: bool):
         Warning: Setting 'process_super' to True will cause a doubled DataFrame as 'process_super_dataframe()' is
         called below.
     """
-    data_clean.process(process_super= False, verbose= False)
+    data_clean.process(process_super_df= False, verbose= False)
 
 
     # Process Super Dataframe.
@@ -427,7 +432,9 @@ def build_all(return_df: bool, record: bool):
     if record:
 
         # Define the file location.
-        path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+        path_base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/('
+        path_end = ')_meta-df.json'
+        path = path_base + run_submission + path_end
 
 
         # Output to JSON file.
@@ -453,7 +460,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
     # Define normal-function JSON file pat.h
     if file_path == 'normal':
-        file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/meta-df.json'
+        file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/(news)_meta-df.json'
 
 
     # Load meta-DataFrame from JSON file.
@@ -489,13 +496,16 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    # df = build_all(return_df= True, record= False)
+    # df = build_run(return_df= True, record= False, run_submission= 'politics')
+    # print(df.info())
 
 
     # Build and records meta-DataFrame to JSON file.
-    # build_all(return_df= False, record= True)
+    build_run(return_df= False, record= True, run_submission= 'askreddit')
+    df = build_simply('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/(politics)_meta-df.json')
+    print(df.info())
 
-
+    return 0
 
 
 main()
