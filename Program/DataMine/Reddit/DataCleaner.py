@@ -36,7 +36,7 @@ class DataCleaner:
 
 
 
-    def __init__(self, init_super_df: bool, json_path: str, run_submission: str):
+    def __init__(self, init_super_df: bool, json_path: str, build_subreddit: str):
         """
         Init.
         Instantiates a 'DataCleaner' class. The base DataFrame, 'dataframe', is dynamically defined to work on data read
@@ -45,13 +45,13 @@ class DataCleaner:
 
         :param init_super_df:
         :param json_path:
-        :param submission_id:
+        :param build_subreddit:
         """
 
 
         # Initialize JSON file locations map.
         self.json_paths = dict()
-        self.init_json_map(index_file_id= run_submission)
+        self.init_json_map(index_file_id= build_subreddit)
 
 
         # Define default JSON file location.
@@ -395,10 +395,10 @@ class DataCleaner:
 
 
 
-def build_run(return_df: bool, record: bool, run_submission: str):
+def build_run(return_df: bool, record: bool, build_subreddit: str):
     """
     Builds all base DataFrames and meta-DataFrame.
-    :param run_submission:
+    :param build_subreddit:
     :param return_df:
     :param record:
     :return:
@@ -408,7 +408,7 @@ def build_run(return_df: bool, record: bool, run_submission: str):
     data_clean = DataCleaner(
         init_super_df= True,
         json_path= '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/r-worldnews/r(worldnews)_submission-3aitv7.json',
-        run_submission= run_submission
+        build_subreddit= build_subreddit
     )
 
 
@@ -434,7 +434,7 @@ def build_run(return_df: bool, record: bool, run_submission: str):
         # Define the file location.
         path_base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/('
         path_end = ')_meta-df.json'
-        path = path_base + run_submission + path_end
+        path = path_base + build_subreddit + path_end
 
 
         # Output to JSON file.
@@ -451,16 +451,17 @@ def build_run(return_df: bool, record: bool, run_submission: str):
 
 
 # noinspection PyCompatibility
-def build_simply(file_path: str) -> pandas.DataFrame:
+def build_simply(build_subreddit: str) -> pandas.DataFrame:
     """
     Builds the meta-DataFrame by loading from JSON file.
 
     :return: The meta-DataFrame.
     """
 
-    # Define normal-function JSON file pat.h
-    if file_path == 'normal':
-        file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/(news)_meta-df.json'
+    # Define normal-function JSON file path.
+    path_base = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/('
+    path_end = ')_meta-df.json'
+    file_path = path_base + build_subreddit + path_end
 
 
     # Load meta-DataFrame from JSON file.
@@ -482,7 +483,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
             'body', 'ups', 'downs', 'score', 'controversiality',
             'created', 'date_created', 'time_created'
         ),
-        axis=1
+        axis= 1
     )
 
     return df
@@ -501,9 +502,10 @@ def main():
 
 
     # Build and records meta-DataFrame to JSON file.
-    build_run(return_df= False, record= True, run_submission= 'askreddit')
-    df = build_simply('/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/(politics)_meta-df.json')
-    print(df.info())
+    # build_run(return_df= False, record= True, run_submission= 'politics')
+    # df = build_simply(build_subreddit= 'politics')
+    # print(df.info())
+
 
     return 0
 

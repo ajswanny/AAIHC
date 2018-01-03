@@ -337,7 +337,7 @@ def main():
     :return:
     """
 
-    run_build(build_version= '1', build_subreddit= 'askreddit')
+    run_build(build_version= '1', build_subreddit= 'ukpolitics')
 
 
     return 0

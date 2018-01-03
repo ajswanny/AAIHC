@@ -196,14 +196,14 @@ class DataProcessor:
     version = int()
 
 
-    def __init__(self):
+    def __init__(self, build_subreddit: str):
         """
         Init.
         :return:
         """
 
         # Generate the base DataFrame from 'DataCleaner'.
-        self.DF = DataCleaner.build_simply(file_path= 'normal')
+        self.DF = DataCleaner.build_simply(file_path= build_subreddit)
 
 
         # Generate the shortened base DataFrame.
