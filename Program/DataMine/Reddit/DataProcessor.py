@@ -8,7 +8,7 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 # TODO: Finish documentation.
 
 # Import dependencies.
-from Reddit import DataCleaner
+import DataCleaner
 
 # from sklearn.feature_extraction.text import TfidfVectorizer
 # from sklearn.naive_bayes import MultinomialNB
@@ -989,14 +989,7 @@ def main():
     """
 
 
-    data = DataProcessor()
-
-    data.generate_sentiment(text= "I hate you.", verbose= True)
-
-
     return 0
-
-main()
 
 
 # EOF
