@@ -12,3 +12,5 @@ Average time per operation: 0.9053907545507671 seconds.
 NOTE: These statistics reflect processing of the full original DataFrame, save the amount of categories and sentiments
 analyzed. The DataFrame was processed after truncating the first 6000 rows -- these being the ones that were
 successfully processing in the first iteration of the build run.
+
+Represents comment data collected from the Subreddit: 'r/news'.

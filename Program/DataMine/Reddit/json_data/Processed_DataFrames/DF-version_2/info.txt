@@ -1,1 +1,3 @@
 DataFrame origin: Composed by DF_v0 and DF_v1
+
+Represents comment data collected from the Subreddit: 'r/news'.

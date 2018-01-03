@@ -9,3 +9,5 @@ Total data loss: 45862 rows.
 Kept: 0.04478047154877947 percent.
 Processing time: 2171.5772638320923 seconds.
 Average time per operation: 1.0100359366660894 seconds.
+
+Represents comment data collected from the Subreddit: 'r/news'.
