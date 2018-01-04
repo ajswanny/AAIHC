@@ -497,7 +497,7 @@ def main():
     """
 
     # Builds and returns meta-DataFrame.
-    # df = build_run(return_df= True, record= False, run_submission= 'politics')
+    # df = build_run(return_df= True, record= False, build_subreddit= 'worldnews')
     # print(df.info())
 
 
@@ -508,9 +508,6 @@ def main():
 
 
     return 0
-
-
-main()
 
 
 

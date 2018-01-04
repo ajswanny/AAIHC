@@ -1,0 +1,11 @@
+*Processed until row of index: 13351
+
+Amount of Categories analyzed: 4064
+Amount of Sentiments analyzed: 4064
+Amount of rows dropped: 9288
+Total data loss: 9790 rows.
+Processing time: 11329.459680080414 seconds.
+Average time per operation: 2.7877607480512827 seconds.
+
+Represents comment data collected from the Subreddit: 'r/worldnews'.
+

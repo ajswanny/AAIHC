@@ -1,0 +1,11 @@
+Initial DataFrame length: 34158
+Final DataFrame length: 9966
+Amount of Categories analyzed: 9964
+Amount of Sentiments analyzed: 9964
+Amount of rows dropped: 24193
+Total data loss: 24192 rows.
+Kept: 0.29176181275250307 percent.
+Processing time: 12010.038780927658 seconds.
+Average time per operation: 1.2053431133006483 seconds.
+
+Represents comment data collected from the Subreddit: 'r/worldnews'.

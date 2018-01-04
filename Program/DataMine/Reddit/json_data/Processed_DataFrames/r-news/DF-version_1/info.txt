@@ -1,0 +1,16 @@
+Initial DataFrame length: 48012
+Final DataFrame length: 14138
+Amount of Categories analyzed: 14138
+Amount of Sentiments analyzed: 14138
+Amount of rows dropped: 27874
+Total data loss: 33874 rows.
+Kept: 0.2944680496542531 percent.
+Processing time: 12800.414487838745 seconds.
+Average time per operation: 0.9053907545507671 seconds.
+
+
+NOTE: These statistics reflect processing of the full original DataFrame, save the amount of categories and sentiments
+analyzed. The DataFrame was processed after truncating the first 6000 rows -- these being the ones that were
+successfully processing in the first iteration of the build run.
+
+Represents comment data collected from the Subreddit: 'r/news'.
