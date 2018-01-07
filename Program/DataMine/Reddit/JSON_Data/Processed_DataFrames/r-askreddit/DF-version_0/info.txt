@@ -1,0 +1,9 @@
+Initial DataFrame length: 48404
+Final DataFrame length: 14657
+Amount of Categories analyzed: 14621
+Amount of Sentiments analyzed: 14621
+Amount of rows dropped: 33747
+Total data loss: 33747 rows.
+Kept: 0.30280555326006114 percent.
+Processing time: 30723.380561113358 seconds.
+Average time per operation: 2.1013186896322655 seconds.

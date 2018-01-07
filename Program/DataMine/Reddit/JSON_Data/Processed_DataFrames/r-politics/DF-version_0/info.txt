@@ -1,0 +1,4 @@
+Amount of Categories analyzed: 16647
+Amount of Sentiments analyzed: 16647
+Amount of rows dropped: 31688
+Average time per operation: 1.0769298245915853 seconds.

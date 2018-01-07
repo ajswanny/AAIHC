@@ -21,11 +21,14 @@ Sentiment Analysis of Social Media Text. Eighth International Conference on
 Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
 """
 
+import pyprind
+
 from google.cloud import language
 import google.api_core.exceptions
 
 import numpy
 import six
+import sys
 import pandas
 import time
 
@@ -613,17 +616,18 @@ class DataProcessor:
         :return:
         """
 
-        # Initiate the timer.
+        # Initiate the timer and progress bar object.
         clock_start = time.time()
 
 
         # Define constants.
-        INITIAL_DF_SIZE = 34158
+        INITIAL_DF_SIZE = self.DF.shape[0]
         FINAL_DF_SIZE = 0
         CATEGORIES_ANALYZED = 0
         SENTIMENTS_ANALYZED = 0
         SUCCESSFUL_ANALYSES = 0
         DROPPED_ROWS_COUNT = 0
+        CURRENT_INDEX = 0
 
 
         if which == 'base':
@@ -631,9 +635,15 @@ class DataProcessor:
             # Initiate the Google Natural Language API.
             language_client = self.init_google_lang_api()
 
+
             # Output status.
             print('Defining Categories and Sentiment for \'DF\'...')
-            print('\tDropped indexes:')
+            # print('\tDropped indexes:')
+
+
+            # # Create a progress bar.
+            # progress_bar = pyprind.ProgBar(INITIAL_DF_SIZE, stream=sys.stdout)
+
 
             # Iterate 'DF' to generate the category analysis with the Google Cloud API.
             #   - Note: 'row' necessary for functional iteration (12/24/17).
@@ -649,6 +659,8 @@ class DataProcessor:
                     content=text,
                     type=language.enums.Document.Type.PLAIN_TEXT
                 )
+
+                CURRENT_INDEX = index
 
                 try:
 
@@ -724,7 +736,7 @@ class DataProcessor:
 
 
                     # Output status.
-                    print('\t\t', index)
+                    # print('\t\t', index)
 
 
                     # Continue loop.
@@ -749,8 +761,12 @@ class DataProcessor:
 
                     self.record_dataframe(file_path= df_file_path)
 
+                # # Update the progress bar.
+                # progress_bar.update()
 
-        # End the timer.
+
+
+        # End the timer and the progress bar.
         clock_end = time.time()
 
 
@@ -786,6 +802,7 @@ class DataProcessor:
 
         # Output status.
         print('Finished in: ' + str(clock_end - clock_start) + ' seconds.\n')
+        print('Ended at index: ' + str(CURRENT_INDEX) + '\n')
 
 
         return self
@@ -853,119 +870,6 @@ class DataProcessor:
 
 
 
-
-# TODO: Implement DataFrame version selection.
-def build_run(build_subreddit: str, version: int):
-    """
-    NOTE:
-        This portion of the program currently uses absolute paths to store the processed DataFrame and its statistics.
-        File storing locations have been modified and defined absolutely due to and unforeseen error caused by the
-        Google Cloud Platform Natural Language API which has necessitated running the program once more but in this
-        second iteration processing the DataFrame after the index 6000 (the index upon which the error was given).
-
-        When time permits, this script must be substantially optimized.
-
-    :return:
-    """
-
-    global df_file_path
-    global stats_file_path
-
-
-    if build_subreddit is 'news':
-
-        if version is 0:
-            """
-            The first iteration of the build program run; December 26, 2017. 
-            This version failed due to an unexpected error returned by the Google Cloud Platform Natural Language API:
-                    
-                    google.api_core.exceptions.TooManyRequests
-            
-            Built for Subreddit: 'news'.
-                 
-            """
-
-            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json'
-            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-news/DF-version_0/info.txt'
-
-            df = DataProcessor(build_subreddit= 'news').prepare_dataframe(organize= False)
-
-            df.process_dataframe(which= 'base', df_file_path= df_file_path, stats_file_path= stats_file_path).organize_dataframe(action= 'reindex')
-
-
-        elif version is 1:
-            """
-            The second iteration of the build program run; December 27, 2017.
-            Built for Subreddit: 'news'.
-            
-            """
-
-            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
-            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-news/DF-version_1/info.txt'
-
-            data = DataProcessor(build_subreddit= 'news').prepare_dataframe(organize= False)
-
-            data.DF = data.DF.truncate(before= 6000)
-
-            data.process_dataframe(which= 'base', df_file_path= df_file_path, stats_file_path= stats_file_path)
-
-
-
-    elif build_subreddit is 'worldnews':
-
-        if version is 0:
-            """
-            The first iteration of the build program run; January 3, 2018.            
-            Built for Subreddit: 'worldnews'.
-            
-            """
-
-            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_0/DF_v0.json'
-            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_0/info.txt'
-
-            data = DataProcessor(build_subreddit= 'worldnews').prepare_dataframe(organize= False)
-
-            data.process_dataframe(which= 'base',
-                                   df_file_path= df_file_path,
-                                   stats_file_path= stats_file_path)
-
-            data.organize_dataframe(action='reindex')
-
-
-        elif version is 1:
-            """
-            The second iteration of the build program run; January 3, 2018.    
-            Built for Subreddit: 'worldnews'.
-            
-            Built from the DataFrame truncated at index 13351 due to an unforeseen exception.
-    
-            """
-
-            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_1/DF_v1.json'
-            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_1/info.txt'
-
-            data = DataProcessor(build_subreddit='worldnews').prepare_dataframe(organize=False)
-
-            data.DF = data.DF.truncate(before= 13351)
-
-            data.process_dataframe(which='base',
-                                   df_file_path=df_file_path,
-                                   stats_file_path=stats_file_path)
-
-            data.organize_dataframe(action='reindex')
-
-
-
-    # Test.
-    df = build_simply(file_path= df_file_path)
-
-    print(df.to_string())
-
-
-    return 0
-
-
-
 # noinspection PyCompatibility
 # TODO: Implement DataFrame version selection.
 def build_simply(file_path: str) -> pandas.DataFrame:
@@ -1007,13 +911,179 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 
 
+# TODO: Implement DataFrame version selection.
+def build_run(build_subreddit: str, version: int):
+    """
+    NOTE:
+        This portion of the program currently uses absolute paths to store the processed DataFrame and its statistics.
+        File storing locations have been modified and defined absolutely due to and unforeseen error caused by the
+        Google Cloud Platform Natural Language API which has necessitated running the program once more but in this
+        second iteration processing the DataFrame after the index 6000 (the index upon which the error was given).
+
+        When time permits, this script must be substantially optimized.
+
+        The '_build_' method was defined on January 4, 2018. Thus, it is not used in earlier runs of DataProcessor.
+        This will be optimized, but has not been implemented in order to save time.
+
+    :return:
+    """
+
+    global df_file_path
+    global stats_file_path
+
+
+    if build_subreddit is 'news':
+        """
+        Built from Subreddit: 'r/news'.
+        """
+
+        if version is 0:
+            """
+            The first iteration of the build program run; December 26, 2017. 
+            This version failed due to an unexpected error returned by the Google Cloud Platform Natural Language API:
+                    
+                    google.api_core.exceptions.TooManyRequests
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_0/DF_v0.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-news/DF-version_0/info.txt'
+
+            df = DataProcessor(build_subreddit= 'news').prepare_dataframe(organize= False)
+
+            df.process_dataframe(which= 'base', df_file_path= df_file_path, stats_file_path= stats_file_path).organize_dataframe(action= 'reindex')
+
+
+        elif version is 1:
+            """
+            The second iteration of the build program run; December 27, 2017.
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/DF-version_1/DF_v1.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-news/DF-version_1/info.txt'
+
+            data = DataProcessor(build_subreddit= 'news').prepare_dataframe(organize= False)
+
+            data.DF = data.DF.truncate(before= 6000)
+
+            data.process_dataframe(which= 'base', df_file_path= df_file_path, stats_file_path= stats_file_path)
+
+
+    elif build_subreddit is 'worldnews':
+        """
+        Built from Subreddit: 'r/worldnews'.
+        """
+
+        if version is 0:
+            """
+            The first iteration of the build program run; January 3, 2018.            
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_0/DF_v0.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_0/info.txt'
+
+            data = DataProcessor(build_subreddit= 'worldnews').prepare_dataframe(organize= False)
+
+            data.process_dataframe(which= 'base',
+                                   df_file_path= df_file_path,
+                                   stats_file_path= stats_file_path)
+
+            data.organize_dataframe(action='reindex')
+
+
+        elif version is 1:
+            """
+            The second iteration of the build program run; January 3, 2018.    
+            
+            Built from the DataFrame truncated at index 13351 due to an unforeseen exception.
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_1/DF_v1.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_1/info.txt'
+
+            data = DataProcessor(build_subreddit='worldnews').prepare_dataframe(organize=False)
+
+            data.DF = data.DF.truncate(before= 13351)
+
+            data.process_dataframe(which='base',
+                                   df_file_path=df_file_path,
+                                   stats_file_path=stats_file_path)
+
+            data.organize_dataframe(action='reindex')
+
+
+    elif build_subreddit is 'politics':
+        """
+        Built from Subreddit: 'r/politics'.
+        """
+
+        if version is 0:
+            """
+            The first iteration of the build program run; January 4, 2018.            
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/JSON_Data/Processed_DataFrames/r-politics/DF-version_0/DF_v0.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/JSON_Data/Processed_DataFrames/r-politics/DF-version_0/info.txt'
+
+            _build(('politics', df_file_path, stats_file_path))
+
+
+    elif build_subreddit is 'askreddit':
+        """
+        Built from Subreddit: 'r/askreddit'.
+        """
+
+        if version is 0:
+            """
+            The first iteration of the build program run; January 5, 2018.
+            """
+
+            df_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/JSON_Data/Processed_DataFrames/r-askreddit/DF-version_0/DF_v0.json'
+            stats_file_path = '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/JSON_Data/Processed_DataFrames/r-askreddit/DF-version_0/info.txt'
+
+            _build(('askreddit', df_file_path, stats_file_path))
+
+
+
+
+    # Test.
+    # df = build_simply(file_path= df_file_path)
+    #
+    # print(df.to_string())
+
+
+    return 0
+
+
+def _build(params: tuple):
+    """
+    Handler method for building and running DataProcessor.
+    :return:
+    """
+
+    data = DataProcessor(build_subreddit= params[0]).prepare_dataframe(organize=False)
+
+    data.process_dataframe(which='base',
+                           df_file_path= params[1],
+                           stats_file_path= params[2])
+
+    data.organize_dataframe(action='reindex')
+
+
+
 def main():
     """
 
     :return:
     """
 
-    build_run(build_subreddit= 'worldnews', version= 1)
+    build_run(build_subreddit= 'askreddit', version= 0)
+
+    # n = 49000
+    # bar = pyprind.ProgBar(n, stream = sys.stdout)
+    # for i in range(n):
+    #     time.sleep(0.001)
+    #     bar.update()
+
 
     return 0
 

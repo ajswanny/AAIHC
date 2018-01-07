@@ -6,20 +6,17 @@ import pandas
 
 
 
-# class DataObserver:
-#     """
-#     The DataObserver class generates the data structures for appropriate observation and analysis.
-#     """
-#
-#     df = pandas.DataFrame()
-#
-#     def __init__(self):
-#         """
-#
-#         """
-#
-#         # Define the base DataFrame.
-#         self.df = DataProcessor.build_simply(file_path= 'normal')
+class DataObserver:
+    """
+    The DataObserver class generates the data structures for appropriate observation and analysis.
+    """
+
+    df = pandas.DataFrame()
+
+    def __init__(self):
+        """
+        Init.
+        """
 
 
 
@@ -71,11 +68,11 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 def placer():
     """
-    A placer for final processing and DataFrame aggregation.
+    A placer processed DataFrame aggregation.
     :return:
     """
 
-    # Input Frames
+    # Import Frames
     x = build_simply(
         '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/json_data/Processed_DataFrames/r-worldnews/DF-version_0/DF_v0.json')
     y = pandas.read_json(
@@ -102,5 +99,6 @@ def main():
 
 
     return 0
+
 
 # EOF
