@@ -97,6 +97,8 @@ def placer():
 def main():
 
 
+    print()
+
 
     return 0
 
