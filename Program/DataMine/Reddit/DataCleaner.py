@@ -1,6 +1,6 @@
 """
 DataCleaner - Version 0.1
-Copyright (c) 2017, Alexander Joseph Swanson Villares
+Copyright (c) 2018, Alexander Joseph Swanson Villares
 """
 
 # BOF
