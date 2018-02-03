@@ -6,6 +6,7 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 # BOF
 
 # TODO: Finish documentation.
+# TODO: Fix corrupted data.
 
 # Import dependencies.
 import DataCleaner

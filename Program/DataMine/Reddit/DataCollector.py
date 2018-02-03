@@ -337,7 +337,17 @@ def main():
     :return:
     """
 
-    run_build(build_version= '1', build_subreddit= 'ukpolitics')
+    """ Official Program Run Command """
+    # run_build(build_version= '1', build_subreddit= 'ukpolitics')
+
+
+
+    # Create an instance of the "DataMiner" class.
+    data_collector = DataCollector(client_id='hpTnFWPodmP85w',
+                                   client_secret='T2rZgWYrmqB_ULSOmIVZVn2ff8Q',
+                                   user_agent="r/praw_tester's research_project")
+
+    data_collector.add_subreddit(subreddit_name='news')
 
 
     return 0
