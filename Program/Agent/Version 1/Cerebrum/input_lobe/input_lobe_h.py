@@ -17,13 +17,20 @@ class InputLobe(Cerebrum):
     """
 
 
-    def __init__(self, reddit_instance: praw.Reddit):
+    def __init__(self, reddit_instance: praw.Reddit, **kwargs):
         """
 
         """
 
-
+        # Define the Reddit instance.
         self.reddit_instance = reddit_instance
+
+
+        # Define default working Subreddit if provided in object instantiation.
+        if "subreddit" in kwargs:
+
+            self.default_subreddit = reddit_instance.subreddit(display_name= kwargs["subreddit"])
+
 
         self.__test_functionality__()
 
@@ -45,6 +52,18 @@ class InputLobe(Cerebrum):
         # for submission in self.reddit_instance.subreddit('news').hot(limit=10):
         #
         #     print(submission.id)
+
+        for submission in self.default_subreddit.hot():
+            print(submission.title)
+
+
+        return 0
+
+    def __collect_submission_ids__(self, listing_type: str):
+
+
+
+
 
 
         return 0

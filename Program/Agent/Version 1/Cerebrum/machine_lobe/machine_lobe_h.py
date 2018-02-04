@@ -7,6 +7,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 
+import pandas
 import praw
 from os import system
 
@@ -106,8 +107,11 @@ class MachineLobe(Cerebrum):
         """
 
 
-        # Produce data from InputLobe.
-        input_lobe = InputLobe(reddit_instance= self.reddit_instance)
+        # Create InputLobe object to produce Submission metadata.
+        input_lobe = InputLobe(reddit_instance= self.reddit_instance, subreddit= "news")
+
+
+        # Retrieve
 
 
         return 0
