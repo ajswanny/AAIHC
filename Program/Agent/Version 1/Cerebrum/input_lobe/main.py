@@ -1,4 +1,4 @@
-from Cerebrum.input_lobe.input_lobe_h import InputLobe
+from Cerebrum.machine_lobe.machine_lobe_h import MachineLobe
 
 
 reddit_parameters = ("YKsn6_Q_yaP46A",
@@ -7,7 +7,7 @@ reddit_parameters = ("YKsn6_Q_yaP46A",
                      "agent000001",
                      "S0awesome")
 
-input_machine = InputLobe(reddit_parameters)
+machine = MachineLobe(reddit_parameters)
 
 
-input_machine.start()
+machine.start()
