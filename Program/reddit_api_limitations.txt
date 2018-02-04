@@ -1,0 +1,1 @@
+- Every listing type ("new", "hot", etc.) will only return 1000 objects.

@@ -8,3 +8,6 @@ reddit_parameters = ("YKsn6_Q_yaP46A",
                      "S0awesome")
 
 input_machine = InputLobe(reddit_parameters)
+
+
+input_machine.start()
