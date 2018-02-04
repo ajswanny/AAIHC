@@ -25,8 +25,26 @@ class InputLobe(Cerebrum):
 
         self.reddit_instance = reddit_instance
 
+        self.__test_functionality__()
+
+
+
 
     #-}
 
 
+    def __test_functionality__(self):
 
+
+        print(self.reddit_instance.auth)
+
+        submission = self.reddit_instance.submission(id="7v6jp6")
+
+        print(submission.title)
+
+        # for submission in self.reddit_instance.subreddit('news').hot(limit=10):
+        #
+        #     print(submission.id)
+
+
+        return 0

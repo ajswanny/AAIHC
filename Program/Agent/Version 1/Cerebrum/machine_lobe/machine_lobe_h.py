@@ -5,6 +5,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 
 
 from Cerebrum.cerebrum import Cerebrum
+from Cerebrum.input_lobe.input_lobe_h import InputLobe
 
 import praw
 from os import system
@@ -31,11 +32,11 @@ class MachineLobe(Cerebrum):
                 password
         """
 
-        reddit_instance = praw.Reddit(client_id= reddit_params[0],
-                                      client_secret= reddit_params[1],
-                                      user_agent= reddit_params[2],
-                                      username= reddit_params[3],
-                                      password= reddit_params[4])
+        self.reddit_instance = praw.Reddit(client_id= reddit_params[0],
+                                           client_secret= reddit_params[1],
+                                           user_agent= reddit_params[2],
+                                           username= reddit_params[3],
+                                           password= reddit_params[4])
 
     #-}
 
@@ -54,29 +55,30 @@ class MachineLobe(Cerebrum):
               )
 
 
-        action_choice = int()
+        start_menu_run = True
 
 
-        while 1:
+        while start_menu_run:
 
-            int_in = input(" Make a selection: ")
-            action_choice = int_in
+            action_choice = input("Option: ")
 
-            if action_choice == 1:
+            if action_choice:
 
-                self.setup_process(method= "standard")
+                start_menu_run = False
+                self.__setup_process__(method= "standard")
 
                 break
 
-            elif action_choice == 2:
+            else:
 
+                start_menu_run = False
                 break
 
 
         return 0
 
 
-    def setup_process(self, method: str):
+    def __setup_process__(self, method: str):
         """
 
         :param method:
@@ -85,7 +87,7 @@ class MachineLobe(Cerebrum):
 
         if method == "standard":
 
-            self.standard_process()
+            self.__standard_process__()
 
         elif method == "stream":
 
@@ -96,7 +98,7 @@ class MachineLobe(Cerebrum):
         return 0
 
 
-    def standard_process(self):
+    def __standard_process__(self):
         """
         Begin work using a standard Submission object retrieval using the "hot" listing type.
 
@@ -104,13 +106,14 @@ class MachineLobe(Cerebrum):
         """
 
 
-
+        # Produce data from InputLobe.
+        input_lobe = InputLobe(reddit_instance= self.reddit_instance)
 
 
         return 0
 
 
-    def stream_process(self):
+    def __stream_process__(self):
         """
 
         :return:
