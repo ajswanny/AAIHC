@@ -37,7 +37,7 @@ class InputLobe(Cerebrum):
             self.default_subreddit = self.reddit_instance.subreddit("news")
 
 
-        self.__test_functionality__()
+        # self.__test_functionality__()
 
 
     #-}

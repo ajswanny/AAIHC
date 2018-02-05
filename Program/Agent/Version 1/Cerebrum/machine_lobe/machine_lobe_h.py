@@ -20,8 +20,7 @@ class MachineLobe(Cerebrum):
     """
 
 
-
-    def __init__(self, reddit_params: tuple):
+    def __init__(self, platform: str, reddit_params: tuple):
         """
 
         :param reddit_params:
@@ -33,6 +32,10 @@ class MachineLobe(Cerebrum):
                 password
         """
 
+
+        self.working_platform = platform
+
+
         self.reddit_instance = praw.Reddit(client_id= reddit_params[0],
                                            client_secret= reddit_params[1],
                                            user_agent= reddit_params[2],
@@ -40,6 +43,17 @@ class MachineLobe(Cerebrum):
                                            password= reddit_params[4])
 
     #-}
+
+
+    @property
+    def __working_platform__(self):
+        """
+        Provides essential information about the working platform for the instance of the MachineLobe object.
+
+        :return:
+        """
+
+        return self.working_platform
 
 
 
@@ -108,13 +122,14 @@ class MachineLobe(Cerebrum):
 
 
         # Create InputLobe object to produce Submission metadata.
-        input_lobe = InputLobe(reddit_instance= self.reddit_instance, subreddit= "news")
+        self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit= "news")
 
 
         # Retrieve
 
 
         return 0
+
 
 
     def __stream_process__(self):
@@ -124,3 +139,17 @@ class MachineLobe(Cerebrum):
         """
 
         return 0
+
+
+
+    @staticmethod
+    def __new_InputLobe__(reddit_instance, subreddit):
+        """
+        A method allowing for customizable creation of InputLobe objects.
+
+        :param reddit_instance:
+        :param subreddit:
+        :return:
+        """
+
+        return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
