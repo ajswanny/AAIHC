@@ -7,6 +7,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 from Cerebrum.cerebrum import Cerebrum
 
 import praw
+from pprint import pprint
 
 
 # TODO: Implement data input.
@@ -29,7 +30,11 @@ class InputLobe(Cerebrum):
         # Define default working Subreddit if provided in object instantiation.
         if "subreddit" in kwargs:
 
-            self.default_subreddit = reddit_instance.subreddit(display_name= kwargs["subreddit"])
+            self.default_subreddit = self.reddit_instance.subreddit(display_name= kwargs["subreddit"])
+
+        else:
+
+            self.default_subreddit = self.reddit_instance.subreddit("news")
 
 
         self.__test_functionality__()
@@ -43,27 +48,47 @@ class InputLobe(Cerebrum):
     def __test_functionality__(self):
 
 
-        print(self.reddit_instance.auth)
-
-        submission = self.reddit_instance.submission(id="7v6jp6")
-
-        print(submission.title)
-
-        # for submission in self.reddit_instance.subreddit('news').hot(limit=10):
+        # print(self.reddit_instance.auth)
         #
-        #     print(submission.id)
+        # submission = self.reddit_instance.submission(id="7v6jp6")
+        #
+        # print(submission.title)
+        #
+        # # for submission in self.reddit_instance.subreddit('news').hot(limit=10):
+        # #
+        # #     print(submission.id)
+        #
+        # for submission in self.default_subreddit.hot():
+        #     print(submission.title)
 
-        for submission in self.default_subreddit.hot():
-            print(submission.title)
+
+        x = self.__collect_submissions__(listing_type= "hot")
+        pprint(x)
 
 
         return 0
 
-    def __collect_submission_ids__(self, listing_type: str):
+    def __collect_submissions__(self, listing_type: str, fetch_limit= None, return_objcts= True):
 
 
+        submissions = []
+        counter = 0
 
+        print("\n", "-" * 50, '\n')
+        print("\tCollecting Submission Objects...")
 
+        for submission in self.default_subreddit.hot(limit= fetch_limit):
 
+            # Increment 'counter'.
+            counter += 1
 
-        return 0
+            # Store Submission in 'submissions'.
+            submissions.append(submission)
+
+        if return_objcts:
+
+            return submissions
+
+        else:
+
+            return 0
