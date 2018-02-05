@@ -40,8 +40,6 @@ class InputLobe(Cerebrum):
         self.__test_functionality__()
 
 
-
-
     #-}
 
 
@@ -63,29 +61,37 @@ class InputLobe(Cerebrum):
 
 
         x = self.__collect_submissions__(listing_type= "hot")
-        pprint(x)
 
 
         return 0
 
-    def __collect_submissions__(self, listing_type: str, fetch_limit= None, return_objcts= True):
+
+
+    def __collect_submissions__(self, listing_type: str, fetch_limit= None, return_objects= True):
 
 
         submissions = []
         counter = 0
 
+
         print("\n", "-" * 50, '\n')
         print("\tCollecting Submission Objects...")
 
+
         for submission in self.default_subreddit.hot(limit= fetch_limit):
 
-            # Increment 'counter'.
-            counter += 1
+            # # Increment 'counter'.
+            # counter += 1
 
             # Store Submission in 'submissions'.
             submissions.append(submission)
 
-        if return_objcts:
+
+        print("\tTask completed.")
+        print("\n", "-" * 50, '\n')
+
+
+        if return_objects:
 
             return submissions
 
