@@ -11,4 +11,7 @@ reddit_parameters = ("YKsn6_Q_yaP46A",
 machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
-machine.start()
+x = machine.start(return_submissions= True)
+
+
+print(x)

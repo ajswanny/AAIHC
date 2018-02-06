@@ -57,18 +57,24 @@ class MachineLobe(Cerebrum):
 
 
 
-    def start(self):
+    def start(self, return_submissions= False):
         """
 
         :return:
         """
+
+        # Simply return the array of Submissions.
+        if return_submissions:
+
+            self.input_lobe = self.__new_InputLobe__(reddit_instance=self.reddit_instance, subreddit="news")
+
+            return self.input_lobe.__collect_submissions__()
 
 
         print("\n", "-" * 100, '\n',
               "The Machine Lobe has been instantiated and initialized.", '\n\n',
               "\t[1] Begin process. \t\t [2] Exit.", '\n',
               )
-
 
         start_menu_run = True
 
@@ -127,6 +133,8 @@ class MachineLobe(Cerebrum):
 
 
         # Retrieve
+
+        #TODO
 
 
         return 0

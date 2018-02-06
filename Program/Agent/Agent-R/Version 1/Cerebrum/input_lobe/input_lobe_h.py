@@ -67,7 +67,7 @@ class InputLobe(Cerebrum):
 
 
 
-    def __collect_submissions__(self, listing_type: str, fetch_limit= None, return_objects= True):
+    def __collect_submissions__(self, listing_type: str = None, fetch_limit= None, return_objects= True):
 
 
         submissions = []
