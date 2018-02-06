@@ -113,6 +113,7 @@ class MachineLobe(Cerebrum):
         return 0
 
 
+
     def __standard_process__(self):
         """
         Begin work using a standard Submission object retrieval using the "hot" listing type.

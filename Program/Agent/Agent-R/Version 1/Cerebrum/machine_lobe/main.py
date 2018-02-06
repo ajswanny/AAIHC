@@ -7,8 +7,8 @@ reddit_parameters = ("YKsn6_Q_yaP46A",
                      "agent000001",
                      "S0awesome")
 
-machine = MachineLobe(reddit_parameters)
+
+machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 machine.start()
-
