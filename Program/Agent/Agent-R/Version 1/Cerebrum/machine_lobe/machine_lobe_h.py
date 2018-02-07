@@ -6,6 +6,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
+from vector_production_h import VectorMachine
 
 import pandas
 import praw
@@ -52,10 +53,6 @@ class MachineLobe(Cerebrum):
         self.keywords_container = pandas.Series(self.keywords)
 
 
-        # Define the
-
-
-
     #-}
 
 
@@ -82,9 +79,7 @@ class MachineLobe(Cerebrum):
         """
 
 
-        self.title_vector = numpy.array("keyword", 5)
-
-        print(self.title_vector)
+        self.title_vector = numpy.array(["apple", 1, 2, 3, 4, 5])
 
 
         return 0
@@ -164,11 +159,6 @@ class MachineLobe(Cerebrum):
 
         # Create InputLobe object to produce Submission metadata.
         self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit= "news")
-
-
-        # Retrieve
-
-        #TODO
 
 
         return 0

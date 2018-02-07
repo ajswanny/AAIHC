@@ -1,0 +1,6 @@
+
+
+class Agent:
+
+
+    identity = "Agent"
