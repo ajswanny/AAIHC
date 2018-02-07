@@ -11,7 +11,10 @@ reddit_parameters = ("YKsn6_Q_yaP46A",
 machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
-x = machine.start(return_submissions= True)
+# x = machine.start(return_submissions= True)
+#
+#
+# print(x)
 
 
-print(x)
+print(machine.keywords_container)

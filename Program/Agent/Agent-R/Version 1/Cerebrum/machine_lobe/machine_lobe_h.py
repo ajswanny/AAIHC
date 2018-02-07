@@ -42,6 +42,14 @@ class MachineLobe(Cerebrum):
                                            username= reddit_params[3],
                                            password= reddit_params[4])
 
+
+        # TODO: Define the keywords collection.
+        self.keywords = ["apples", "apples", "oranges"]
+
+        self.keywords_container = pandas.Series(self.keywords)
+
+
+
     #-}
 
 
@@ -162,3 +170,6 @@ class MachineLobe(Cerebrum):
         """
 
         return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
+
+
+

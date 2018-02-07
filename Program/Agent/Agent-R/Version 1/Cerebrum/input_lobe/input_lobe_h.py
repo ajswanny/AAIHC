@@ -15,7 +15,11 @@ from pprint import pprint
 class InputLobe(Cerebrum):
     """
     The Input Lobe, derivative of the Cerebrum.
+
     """
+
+    # The UTC time of retrieval of the Submission objects.
+    submissions_retrieval_time = int()
 
 
     def __init__(self, reddit_instance: praw.Reddit, **kwargs):

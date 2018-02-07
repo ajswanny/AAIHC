@@ -1,0 +1,2 @@
+1. Define method for determining whether to post a comment in a particular Submission or not.
+    a. Define the collection of keywords to be used for primary analysis.
