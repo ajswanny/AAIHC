@@ -9,6 +9,7 @@ from Cerebrum.input_lobe.input_lobe_h import InputLobe
 
 import pandas
 import praw
+import numpy
 from os import system
 
 
@@ -33,9 +34,11 @@ class MachineLobe(Cerebrum):
         """
 
 
+        # The current platform (i.e., Reddit, Facebook, etc.).
         self.working_platform = platform
 
 
+        # The PRAW Reddit object.
         self.reddit_instance = praw.Reddit(client_id= reddit_params[0],
                                            client_secret= reddit_params[1],
                                            user_agent= reddit_params[2],
@@ -44,9 +47,12 @@ class MachineLobe(Cerebrum):
 
 
         # TODO: Define the keywords collection.
+        # The collection of manually determined keywords.
         self.keywords = ["apples", "apples", "oranges"]
-
         self.keywords_container = pandas.Series(self.keywords)
+
+
+        # Define the
 
 
 
@@ -61,7 +67,27 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        print("The platform for this Agent instance is: Reddit.")
+
         return self.working_platform
+
+
+
+
+    def __generate_title_vector__(self):
+        """
+        Generates the Submission title scoring vector.
+
+        :return:
+        """
+
+
+        self.title_vector = numpy.array("keyword", 5)
+
+        print(self.title_vector)
+
+
+        return 0
 
 
 
@@ -154,6 +180,8 @@ class MachineLobe(Cerebrum):
 
         :return:
         """
+
+        print(self.reddit_instance)
 
         return 0
 

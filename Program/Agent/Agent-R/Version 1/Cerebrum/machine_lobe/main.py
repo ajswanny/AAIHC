@@ -17,4 +17,4 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 # print(x)
 
 
-print(machine.keywords_container)
+machine.__generate_title_vector__()
