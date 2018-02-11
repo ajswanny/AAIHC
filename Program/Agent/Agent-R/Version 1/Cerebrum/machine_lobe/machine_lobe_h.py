@@ -6,7 +6,6 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
-from vector_production_h import VectorMachine
 
 import pandas
 import praw
@@ -111,17 +110,16 @@ class MachineLobe(Cerebrum):
 
 
         # Define True condition
-        start_menu_run = True
+        self.start_menu_run = True
 
 
-        while start_menu_run:
+        while self.start_menu_run:
 
             action_choice = input("Option: ")
 
             if action_choice:
 
-                start_menu_run = False
-                self.__setup_process__(method= "standard")
+                self.__action_choice__()
 
                 break
 
@@ -132,6 +130,22 @@ class MachineLobe(Cerebrum):
 
 
         return 0
+
+
+
+    def __action_choice__(self):
+        """
+
+        :return:
+        """
+
+
+        self.start_menu_run = False
+        self.__setup_process__(method="standard")
+
+
+        return 0
+
 
 
     def __setup_process__(self, method: str):
@@ -165,6 +179,9 @@ class MachineLobe(Cerebrum):
 
         # Create InputLobe object to produce Submission metadata.
         self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit= "news")
+
+        # Command collection of Submission objects.
+        self.submission_objects = self.input_lobe.__collect_submissions__(return_objects= True)
 
 
         return 0

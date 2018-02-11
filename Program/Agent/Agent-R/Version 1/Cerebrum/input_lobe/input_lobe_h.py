@@ -101,4 +101,5 @@ class InputLobe(Cerebrum):
 
         else:
 
+            pass
             return 0
