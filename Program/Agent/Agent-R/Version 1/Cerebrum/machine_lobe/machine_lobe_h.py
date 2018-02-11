@@ -248,6 +248,35 @@ class MachineLobe(Cerebrum):
 
 
 
+    @staticmethod
+    def normalize(value, minimum, maximum):
+
+
+        numerator = value - minimum
+        denominator = maximum - minimum
+
+
+        return numerator/denominator
+
+
+
+    def probability(self, values: tuple):
+        """
+        Calculates the probability of success, judging this measure with respect to the intersection
+        of keywords of the base keyword set and a given Submission title's keywords.
+
+        :return:
+        """
+
+        # Initialize a probability measure.
+        success_probability = values[3]
+
+
+        # Return a probability measure normalized to a range of [0, 1].
+        return self.normalize(success_probability, minimum= 0, maximum= 800)
+
+
+
     def __analyze_submission__(self, submission: reddit.Submission):
         """
 
@@ -273,15 +302,23 @@ class MachineLobe(Cerebrum):
         keywords_intersections_count = len(intersection)
 
 
-        analysis = {"submission_id": submission.id,
-                    "submission_title": submission.title,
-                    "keywords_intersection": intersection,
-                    "intersection_size": keywords_intersections_count,
-                    }
+        # Define a structure to contain all measures relevant to analysis.
+        analysis = {
+            "submission_id": submission.id,
+            "submission_title": submission.title,
+            "keywords_intersection": intersection,
+            "intersection_size": keywords_intersections_count,
+        }
 
 
+        # Define a probability measure of success and append this to the 'analysis' dictionary.
+        analysis["success_probability"] = self.probability(tuple(analysis.values()))
 
-        return 0
+
+        pprint(analysis)
+
+
+        return analysis
 
 
 
@@ -300,7 +337,6 @@ class MachineLobe(Cerebrum):
                 self.__analyze_submission__(submission)
 
 
-
         else:
 
             # Analyze every Submission collected.
@@ -316,8 +352,3 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __evaluate_success_p__(self):
-        """
-
-        :return:
-        """
