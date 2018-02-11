@@ -44,11 +44,13 @@ class MachineLobe(Cerebrum):
 
 
         # The PRAW Reddit object.
-        self.reddit_instance = praw.Reddit(client_id= reddit_params[0],
-                                           client_secret= reddit_params[1],
-                                           user_agent= reddit_params[2],
-                                           username= reddit_params[3],
-                                           password= reddit_params[4])
+        self.reddit_instance = praw.Reddit(
+            client_id= reddit_params[0],
+            client_secret= reddit_params[1],
+            user_agent= reddit_params[2],
+            username= reddit_params[3],
+            password= reddit_params[4]
+        )
 
 
         # TODO: Define the processing of the Standard Process applied to a Submission title and the Topic.
@@ -60,16 +62,23 @@ class MachineLobe(Cerebrum):
 
 
     @property
-    def __working_platform__(self):
+    def working_platform(self):
         """
         Provides essential information about the working platform for the instance of the MachineLobe object.
 
-        :return:
+        :return:    
         """
 
         print("The platform for this Agent instance is: Reddit.")
 
         return self.working_platform
+
+
+
+    @working_platform.setter
+    def working_platform(self, value):
+
+        self.working_platform = value
 
 
 
@@ -330,7 +339,7 @@ class MachineLobe(Cerebrum):
         """
 
         """
-        Although we do not know which specific API to use for keywords analysis, we know that the 
+        Although we do not know which specific API to use for keyword analysis, we know that the 
         actionable data provided will be a sequence of identified keywords. Thus, a placer list is defined
         for temporary use.
         """
