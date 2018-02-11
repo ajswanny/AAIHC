@@ -18,7 +18,7 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 machine.start(override= True)
 machine.__test_functionality__()
 
-
+# pprint(vars(machine.submission_objects[0]))
 
 # pprint(len(machine.submission_objects))
 

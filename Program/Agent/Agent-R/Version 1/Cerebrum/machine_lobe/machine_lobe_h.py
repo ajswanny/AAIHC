@@ -10,6 +10,7 @@ from Cerebrum.input_lobe.input_lobe_h import InputLobe
 import pandas
 import praw
 import praw.models as reddit
+from pprint import pprint
 
 
 
@@ -33,6 +34,10 @@ class MachineLobe(Cerebrum):
                 password
         """
 
+        # TODO: Define the keywords collection.
+        # A temporary definition of the collection of the topic keywords.
+        self.placer__keywords_bag = ["alpha", "beta", "omega"]
+
 
         # The current platform (i.e., Reddit, Facebook, etc.).
         self.working_platform = platform
@@ -44,12 +49,6 @@ class MachineLobe(Cerebrum):
                                            user_agent= reddit_params[2],
                                            username= reddit_params[3],
                                            password= reddit_params[4])
-
-
-        # TODO: Define the keywords collection.
-        # The collection of manually determined keywords.
-        self.keywords = ["apples", "apples", "oranges"]
-        self.keywords_container = pandas.Series(self.keywords)
 
 
         # TODO: Define the processing of the Standard Process applied to a Submission title and the Topic.
@@ -222,48 +221,103 @@ class MachineLobe(Cerebrum):
 
 
 
+    @staticmethod
+    def __intersect__(list_x: list, list_y: list):
+        """
+
+        :param list_x:
+        :param list_y:
+        :return:
+        """
+
+        return list(set(list_x) & set(list_y))
+
+
+
     def __test_functionality__(self):
-
-
-        self.__analyze_submission__()
-
-
-        return 0
-
-
-
-    def __analyze_submission__(self, submission: reddit.Submission = None):
-        """
-
-        :return:
-        """
-
-        x = self.submission_objects[0]
-
-        print(vars(x))
-
-
-        return 0
-
-
-
-    def analyze_submissions(self):
         """
 
         :return:
         """
 
 
-        for i, submission in self.submission_objects:
-
-
-
-
-
-            break
+        self.__analyze_submission__(self.submission_objects[0])
 
 
         return 0
 
 
 
+    def __analyze_submission__(self, submission: reddit.Submission):
+        """
+
+        :return:
+        """
+
+        """
+        Although we do not know which specific API to use for keywords analysis, we know that the 
+        actionable data provided will be a sequence of identified keywords. Thus, a placer list is defined
+        for temporary use.
+        """
+
+        #-
+        placer__keywords = ["alpha", "beta", "omega", "charlie", "foxtrot"]
+        #-
+
+
+        # Define the intersection of the topic keywords bag and the Submission's keywords.
+        intersection = self.__intersect__(self.placer__keywords_bag, placer__keywords)
+
+
+        # Initialize the keyword intersection count.
+        keywords_intersections_count = len(intersection)
+
+
+        analysis = {"submission_id": submission.id,
+                    "submission_title": submission.title,
+                    "keywords_intersection": intersection,
+                    "intersection_size": keywords_intersections_count,
+                    }
+
+
+
+        return 0
+
+
+
+    def analyze_submissions(self, process: bool= False):
+        """
+
+        :return:
+        """
+
+
+        if process:
+
+            # Analyze every Submission collected.
+            for i, submission in self.submission_objects:
+
+                self.__analyze_submission__(submission)
+
+
+
+        else:
+
+            # Analyze every Submission collected.
+            for i, submission in self.submission_objects:
+
+                self.__analyze_submission__(submission)
+
+
+
+
+
+        return 0
+
+
+
+    def __evaluate_success_p__(self):
+        """
+
+        :return:
+        """
