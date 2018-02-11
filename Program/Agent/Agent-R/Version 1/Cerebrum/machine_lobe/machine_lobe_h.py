@@ -169,6 +169,16 @@ class MachineLobe(Cerebrum):
         """
         Begins the process of Work.
 
+        Workflow for KeywordWork algorithm:
+            1.  __action_choice__
+            2.  __setup_process__
+                3.  __standard_process__
+                    4.  __process_keyword_analysis__
+
+                3.  __stream_process__
+                    ...
+
+
         :return:
         """
 
@@ -348,7 +358,7 @@ class MachineLobe(Cerebrum):
         # Define a probability measure of success and append this to the 'analysis' dictionary.
         # This figure is used to determine whether or not the Agent will submit a textual expression
         # to a Reddit Submission.
-        analysis["success_probability"] = self.probability(tuple(analysis.values()))
+        analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
 
 
         # pprint(analysis)
