@@ -34,12 +34,6 @@ class MachineLobe(Cerebrum):
                 password
         """
 
-        # TODO: Define the keywords collection.
-        # A temporary definition of the collection of the topic keywords.
-        df = pandas.read_csv("Resources/topic_keywords.csv")
-        self.placer__keywords_bag = tuple(df.columns.values)
-
-
         # The current platform (i.e., Reddit, Facebook, etc.).
         self.working_platform = platform
 
@@ -54,11 +48,31 @@ class MachineLobe(Cerebrum):
         )
 
 
-        # TODO: Define the processing of the Standard Process applied to a Submission title and the Topic.
-        #   1. Submission Title Keyword Correlation Score
+        # Initialize dependencies for keyword analysis.
+        self.__init_keyword_metadata__()
 
 
     #-}
+
+
+
+    def __init_keyword_metadata__(self):
+        """
+        Init method to initialize all necessary keyword-relative data fields.
+        :return:
+        """
+
+        # TODO: Define the keywords collection.
+        # A temporary definition of the collection of the topic keywords.
+        df = pandas.read_csv("Resources/topic_keywords.csv")
+        self.placer__keywords_bag = tuple(df.columns.values)
+
+
+        # Declare new list to contain all keyword analyses for Submissions.
+        self.keyword_analyses = []
+
+
+        return 0
 
 
 
@@ -102,7 +116,40 @@ class MachineLobe(Cerebrum):
         numerator = value - minimum
         denominator = maximum - minimum
 
+
         return numerator / denominator
+
+
+
+    def probability(self, method: str, values: tuple, normalize: bool= True):
+        """
+        Calculates the probability of success, judging this measure with respect to the intersection
+        of keywords of the base keyword set and a given Submission title's keywords.
+
+        At the moment, this measure is obtained simply and naively from the length of the intersection
+        of the base keyword set and a given Submission title's keyword set.
+
+        :return:
+        """
+
+        # TODO: Perform substantial optimization.
+
+
+        if method == "keyword":
+
+            # Initialize a probability measure; this tuple index refers to the sum of the amount of values
+            # in the intersection list. That is, the amount of keywords that intersected.
+            success_probability = values[3]
+
+
+            if normalize:
+
+                # Return a probability measure normalized to a range of [0, 1].
+                return self.normalize(success_probability, minimum= 0, maximum= 800)
+
+            else:
+
+                return success_probability
 
 
 
@@ -144,11 +191,11 @@ class MachineLobe(Cerebrum):
         # Output status.
         print("\n", "-" * 100, '\n',
               "The Machine Lobe has been instantiated and initialized.", '\n\n',
-              "\t[1] Begin process. \t\t [2] Exit.", '\n',
+              "\t[1] Begin KeywordWork process. \t\t [2] Exit.", '\n',
               )
 
 
-        # Define True condition
+        # Define True condition for start menu run-state.
         self.start_menu_run = True
 
 
@@ -156,7 +203,7 @@ class MachineLobe(Cerebrum):
 
             action_choice = input("Option: ")
 
-            if action_choice:
+            if action_choice is 1:
 
                 self.__action_choice__()
 
@@ -225,6 +272,7 @@ class MachineLobe(Cerebrum):
         # Perform keyword-based success probability analysis.
         self.__process_keyword_analysis__()
 
+
         return 0
 
 
@@ -237,39 +285,8 @@ class MachineLobe(Cerebrum):
 
         print(self.reddit_instance)
 
+
         return 0
-
-
-
-    def probability(self, method: str, values: tuple, normalize: bool= True):
-        """
-        Calculates the probability of success, judging this measure with respect to the intersection
-        of keywords of the base keyword set and a given Submission title's keywords.
-
-        At the moment, this measure is obtained simply and naively from the length of the intersection
-        of the base keyword set and a given Submission title's keyword set.
-
-        :return:
-        """
-
-        # TODO: Perform substantial optimization.
-
-
-        if method == "keyword":
-
-            # Initialize a probability measure; this tuple index refers to the sum of the amount of values
-            # in the intersection list. That is, the amount of keywords that intersected.
-            success_probability = values[3]
-
-
-            if normalize:
-
-                # Return a probability measure normalized to a range of [0, 1].
-                return self.normalize(success_probability, minimum= 0, maximum= 800)
-
-            else:
-
-                return success_probability
 
 
 
@@ -283,22 +300,19 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Declare new field to contain all keyword analyses for Submissions.
-        self.keyword_analyses = []
-
-
         # Analyze every Submission collected, appending each analysis to 'keyword_analyses'.
         for submission in self.submission_objects:
 
-            self.keyword_analyses.append(self.__analyze_submission_keywords__(submission))
+            self.keyword_analyses.append(self.__analyze_subm_keywords__(submission))
 
 
         return 0
 
 
 
-    def __analyze_submission_keywords__(self, submission: reddit.Submission):
+    def __analyze_subm_keywords__(self, submission: reddit.Submission):
         """
+        Performs keyword intersection analysis for the topic keyword collection and a given Submission's keywords.
 
         :return:
         """
@@ -341,6 +355,3 @@ class MachineLobe(Cerebrum):
 
 
         return analysis
-
-
-
