@@ -265,6 +265,11 @@ class MachineLobe(Cerebrum):
         Calculates the probability of success, judging this measure with respect to the intersection
         of keywords of the base keyword set and a given Submission title's keywords.
 
+        At the moment, this measure is obtained simply and naively from the length of the intersection
+        of the base keyword set and a given Submission title's keyword set.
+
+        TODO: Needs substantial optimization.
+
         :return:
         """
 
@@ -290,12 +295,12 @@ class MachineLobe(Cerebrum):
         """
 
         #-
-        placer__keywords = ["alpha", "beta", "omega", "charlie", "foxtrot"]
+        __placer__keywords = ["alpha", "beta", "omega", "charlie", "foxtrot"]
         #-
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.__intersect__(self.placer__keywords_bag, placer__keywords)
+        intersection = self.__intersect__(self.placer__keywords_bag, __placer__keywords)
 
 
         # Initialize the keyword intersection count.
@@ -312,7 +317,7 @@ class MachineLobe(Cerebrum):
 
 
         # Define a probability measure of success and append this to the 'analysis' dictionary.
-        # This figure is used to determine whether or not the agent will submit a textual expression
+        # This figure is used to determine whether or not the Agent will submit a textual expression
         # to a Reddit Submission.
         analysis["success_probability"] = self.probability(tuple(analysis.values()))
 
