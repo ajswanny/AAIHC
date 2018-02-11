@@ -58,6 +58,7 @@ class MachineLobe(Cerebrum):
     #-}
 
 
+
     @property
     def __working_platform__(self):
         """
@@ -72,20 +73,52 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __test_functionality__(self):
+    @staticmethod
+    def __new_InputLobe__(reddit_instance: praw.Reddit, subreddit: str):
         """
+        A method allowing for customizable creation of InputLobe objects.
 
+        :param reddit_instance:
+        :param subreddit:
         :return:
         """
 
-
-        return 0
-
+        return InputLobe(reddit_instance=reddit_instance, subreddit=subreddit)
 
 
-    def __generate_title_vector__(self):
+
+    @staticmethod
+    def __intersect__(list_x: list, list_y: list):
         """
-        Generates the Submission title scoring vector.
+
+        :param list_x:
+        :param list_y:
+        :return:
+        """
+
+        return list(set(list_x) & set(list_y))
+
+
+
+    @staticmethod
+    def normalize(value, minimum, maximum):
+        """
+
+        :param value:
+        :param minimum:
+        :param maximum:
+        :return:
+        """
+
+        numerator = value - minimum
+        denominator = maximum - minimum
+
+        return numerator / denominator
+
+
+
+    def __test_functionality__(self):
+        """
 
         :return:
         """
@@ -114,7 +147,7 @@ class MachineLobe(Cerebrum):
         # Simply return the array of Submissions if 'return_submissions' is True.
         if return_submissions:
 
-            self.input_lobe = self.__new_InputLobe__(reddit_instance=self.reddit_instance, subreddit="news")
+            self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
 
             return self.input_lobe.__collect_submissions__()
 
@@ -150,21 +183,6 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __action_choice__(self):
-        """
-
-        :return:
-        """
-
-
-        self.start_menu_run = False
-        self.__setup_process__(method="standard")
-
-
-        return 0
-
-
-
     def __setup_process__(self, method: str):
         """
 
@@ -180,6 +198,21 @@ class MachineLobe(Cerebrum):
 
             # Unimplemented.
             return
+
+
+        return 0
+
+
+
+    def __action_choice__(self):
+        """
+
+        :return:
+        """
+
+
+        self.start_menu_run = False
+        self.__setup_process__(method="standard")
 
 
         return 0
@@ -217,45 +250,6 @@ class MachineLobe(Cerebrum):
         print(self.reddit_instance)
 
         return 0
-
-
-
-    @staticmethod
-    def __new_InputLobe__(reddit_instance: praw.Reddit, subreddit: str):
-        """
-        A method allowing for customizable creation of InputLobe objects.
-
-        :param reddit_instance:
-        :param subreddit:
-        :return:
-        """
-
-        return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
-
-
-
-    @staticmethod
-    def __intersect__(list_x: list, list_y: list):
-        """
-
-        :param list_x:
-        :param list_y:
-        :return:
-        """
-
-        return list(set(list_x) & set(list_y))
-
-
-
-    @staticmethod
-    def normalize(value, minimum, maximum):
-
-
-        numerator = value - minimum
-        denominator = maximum - minimum
-
-
-        return numerator/denominator
 
 
 
