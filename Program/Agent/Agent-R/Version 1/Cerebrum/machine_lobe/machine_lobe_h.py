@@ -9,8 +9,8 @@ from Cerebrum.input_lobe.input_lobe_h import InputLobe
 
 import pandas
 import praw
-import numpy
-from os import system
+import praw.models as reddit
+
 
 
 # TODO: Implement use of InputLobe, processing, and OutputLobe.
@@ -87,12 +87,20 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyAttributeOutsideInit
-    def start(self, return_submissions= False):
+    def start(self, return_submissions: bool= False, override: bool= False):
         """
         Begins the process of Work.
 
         :return:
         """
+
+        # Quick process override.
+        if override:
+
+            self.__action_choice__()
+
+            return self
+
 
         # Simply return the array of Submissions if 'return_submissions' is True.
         if return_submissions:
@@ -125,7 +133,7 @@ class MachineLobe(Cerebrum):
 
             else:
 
-                start_menu_run = False
+                self.start_menu_run = False
                 break
 
 
@@ -201,7 +209,7 @@ class MachineLobe(Cerebrum):
 
 
     @staticmethod
-    def __new_InputLobe__(reddit_instance, subreddit):
+    def __new_InputLobe__(reddit_instance: praw.Reddit, subreddit: str):
         """
         A method allowing for customizable creation of InputLobe objects.
 
@@ -211,6 +219,51 @@ class MachineLobe(Cerebrum):
         """
 
         return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
+
+
+
+    def __test_functionality__(self):
+
+
+        self.__analyze_submission__()
+
+
+        return 0
+
+
+
+    def __analyze_submission__(self, submission: reddit.Submission = None):
+        """
+
+        :return:
+        """
+
+        x = self.submission_objects[0]
+
+        print(vars(x))
+
+
+        return 0
+
+
+
+    def analyze_submissions(self):
+        """
+
+        :return:
+        """
+
+
+        for i, submission in self.submission_objects:
+
+
+
+
+
+            break
+
+
+        return 0
 
 
 

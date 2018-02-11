@@ -15,11 +15,12 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start()
+machine.start(override= True)
+machine.__test_functionality__()
 
 
 
-pprint(len(machine.submission_objects))
+# pprint(len(machine.submission_objects))
 
 
 
