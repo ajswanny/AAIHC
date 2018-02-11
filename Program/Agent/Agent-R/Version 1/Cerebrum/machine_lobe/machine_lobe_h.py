@@ -6,6 +6,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
+from Cerebrum.output_lobe.output_lobe_h import OutputLobe
 
 import pandas
 import praw
@@ -22,7 +23,10 @@ class MachineLobe(Cerebrum):
     """
 
 
-    def __init__(self, platform: str, reddit_params: tuple):
+    topic_keywords_bag_path = "Resources/topic_keywords.csv"
+
+
+    def __init__(self, platform: str, reddit_params: tuple, task: str = "Keyword Analysis and Expression"):
         """
 
         :param reddit_params:
@@ -33,6 +37,10 @@ class MachineLobe(Cerebrum):
                 username
                 password
         """
+
+        # Define the Agent's purpose.
+        self.purpose = task
+
 
         # The current platform (i.e., Reddit, Facebook, etc.).
         self.working_platform = platform
@@ -56,6 +64,20 @@ class MachineLobe(Cerebrum):
 
 
 
+    def __init_operation_lobes__(self, work_subreddit: str):
+
+        self.__input_lobe__ = self.__new_InputLobe__(
+            reddit_instance= self.reddit_instance,
+            subreddit= work_subreddit
+        )
+
+        self.output_lobe = self.__new_OutputLobe__(
+            reddit_instance= self.reddit_instance,
+            subreddit= work_subreddit
+        )
+
+
+
     def __init_keyword_metadata__(self):
         """
         Init method to initialize all necessary keyword-relative data fields.
@@ -72,7 +94,7 @@ class MachineLobe(Cerebrum):
         self.keyword_analyses = []
 
 
-        return 0
+        return self
 
 
 
@@ -86,7 +108,21 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        return InputLobe(reddit_instance=reddit_instance, subreddit=subreddit)
+        return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
+
+
+
+    @staticmethod
+    def __new_OutputLobe__(reddit_instance: praw.Reddit, subreddit: str):
+        """
+        A method allowing for customizable creation of OutputLobe objects.
+
+        :param reddit_instance:
+        :param subreddit:
+        :return:
+        """
+
+        return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
 
 
 
@@ -165,12 +201,12 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyAttributeOutsideInit
-    def start(self, return_submissions: bool= False, override: bool= False):
+    def start(self, work_subreddit: str, override: bool= False):
         """
         Begins the process of Work.
 
         Workflow for KeywordWork algorithm:
-            1.  __action_choice__
+            1.  __init_keyword_workflow__
             2.  __setup_process__
                 3.  __standard_process__
                     4.  __process_keyword_analysis__
@@ -185,17 +221,9 @@ class MachineLobe(Cerebrum):
         # Quick formal process override.
         if override:
 
-            self.__action_choice__()
+            self.__init_keyword_workflow__(work_subreddit= work_subreddit)
 
             return self
-
-
-        # Simply return the array of Submissions if 'return_submissions' is True.
-        if return_submissions:
-
-            self.__input_lobe__ = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
-
-            return self.__input_lobe__.__collect_submissions__()
 
 
         # Output status.
@@ -211,16 +239,24 @@ class MachineLobe(Cerebrum):
 
         while self.start_menu_run:
 
+            # Prompt for desired operation.
             action_choice = input("Option: ")
 
             if action_choice is 1:
 
-                self.__action_choice__()
+                # Initialize keyword analysis workflow.
+                self.__init_keyword_workflow__(work_subreddit= work_subreddit)
 
                 break
 
+            if action_choice is 2:
+
+                # Future implementation.
+                pass
+
             else:
 
+                # Exit program.
                 self.start_menu_run = False
                 break
 
@@ -229,22 +265,25 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __action_choice__(self):
+    def __init_keyword_workflow__(self, work_subreddit: str):
         """
 
         :return:
         """
 
         self.start_menu_run = False
-        self.__setup_process__(method="standard")
+        self.__setup_process__(method="standard", work_subreddit= work_subreddit)
 
 
         return 0
 
 
 
-    def __setup_process__(self, method: str):
+    def __setup_process__(self, method: str, work_subreddit: str):
         """
+        Standard: collect 'hot' Submissions.
+
+        Stream: continuously collect Submissions, perform analysis, and conduct utterance.
 
         :param method:
         :return:
@@ -252,7 +291,7 @@ class MachineLobe(Cerebrum):
 
         if method == "standard":
 
-            self.__standard_process__()
+            self.__standard_process__(work_subreddit= work_subreddit)
 
         elif method == "stream":
 
@@ -264,15 +303,16 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __standard_process__(self):
+    def __standard_process__(self, work_subreddit: str):
         """
         Begin work using a standard Submission object retrieval using the "hot" listing type.
 
         :return:
         """
 
-        # Create InputLobe object to produce Submission metadata.
-        self.__input_lobe__ = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
+        # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
+        # Create OutputLobe object to handle expression utterance.
+        self.__init_operation_lobes__(work_subreddit= work_subreddit)
 
 
         # Command collection of Submission objects.
@@ -322,6 +362,8 @@ class MachineLobe(Cerebrum):
 
     def __analyze_subm_keywords__(self, submission: reddit.Submission):
         """
+        'Analyze Submission Keywords'
+
         Performs keyword intersection analysis for the topic keyword collection and a given Submission's keywords.
 
         :return:
@@ -332,6 +374,8 @@ class MachineLobe(Cerebrum):
         actionable data provided will be a sequence of identified keywords. Thus, a placer list is defined
         for temporary use.
         """
+
+        # TODO: Implement reliable collection of keywords.
 
         #-
         __placer__keywords = ["alpha", "beta", "omega", "charlie", "foxtrot"]

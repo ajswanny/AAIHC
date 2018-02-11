@@ -25,6 +25,8 @@ class InputLobe(Cerebrum):
     def __init__(self, reddit_instance: praw.Reddit, **kwargs):
         """
 
+        :param reddit_instance:
+        :param kwargs:
         """
 
         # Define the Reddit instance.
@@ -40,8 +42,6 @@ class InputLobe(Cerebrum):
 
             self.default_subreddit = self.reddit_instance.subreddit("news")
 
-
-        # self.__test_functionality__()
 
 
     #-}
