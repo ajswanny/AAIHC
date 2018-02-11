@@ -36,7 +36,8 @@ class MachineLobe(Cerebrum):
 
         # TODO: Define the keywords collection.
         # A temporary definition of the collection of the topic keywords.
-        self.placer__keywords_bag = ["alpha", "beta", "omega"]
+        df = pandas.read_csv("Resources/topic_keywords.csv")
+        self.placer__keywords_bag = tuple(df.columns.values)
 
 
         # The current platform (i.e., Reddit, Facebook, etc.).
@@ -58,27 +59,6 @@ class MachineLobe(Cerebrum):
 
 
     #-}
-
-
-
-    @property
-    def working_platform(self):
-        """
-        Provides essential information about the working platform for the instance of the MachineLobe object.
-
-        :return:    
-        """
-
-        print("The platform for this Agent instance is: Reddit.")
-
-        return self.working_platform
-
-
-
-    @working_platform.setter
-    def working_platform(self, value):
-
-        self.working_platform = value
 
 
 

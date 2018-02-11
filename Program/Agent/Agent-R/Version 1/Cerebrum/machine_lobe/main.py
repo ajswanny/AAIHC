@@ -15,8 +15,8 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True)
-machine.__test_functionality__()
+# machine.start(override= True)
+# machine.__test_functionality__()
 
 # pprint(vars(machine.submission_objects[0]))
 
@@ -24,15 +24,13 @@ machine.__test_functionality__()
 
 
 
-
-
-import pandas
-
-
-x = pandas.DataFrame(machine.keyword_analyses)
-
-
-print(x.head())
+# import pandas
+#
+#
+# x = pandas.DataFrame(machine.keyword_analyses)
+#
+#
+# print(x.head())
 
 
 
