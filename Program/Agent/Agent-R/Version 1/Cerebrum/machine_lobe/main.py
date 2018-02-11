@@ -26,6 +26,17 @@ machine.__test_functionality__()
 
 
 
+import pandas
+
+
+x = pandas.DataFrame(machine.analyses)
+
+
+print(x.head())
+
+
+
+
 
 
 

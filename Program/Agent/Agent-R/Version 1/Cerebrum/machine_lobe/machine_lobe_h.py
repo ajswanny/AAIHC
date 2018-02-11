@@ -72,6 +72,19 @@ class MachineLobe(Cerebrum):
 
 
 
+    def __test_functionality__(self):
+        """
+
+        :return:
+        """
+
+
+        self.__analyze_submissions__()
+
+
+        return 0
+
+
 
     def __generate_title_vector__(self):
         """
@@ -234,20 +247,6 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __test_functionality__(self):
-        """
-
-        :return:
-        """
-
-
-        self.__analyze_submission__(self.submission_objects[0])
-
-
-        return 0
-
-
-
     @staticmethod
     def normalize(value, minimum, maximum):
 
@@ -260,15 +259,13 @@ class MachineLobe(Cerebrum):
 
 
 
-    def probability(self, values: tuple):
+    def probability(self, values: tuple, normalize: bool= True):
         """
         Calculates the probability of success, judging this measure with respect to the intersection
         of keywords of the base keyword set and a given Submission title's keywords.
 
         At the moment, this measure is obtained simply and naively from the length of the intersection
         of the base keyword set and a given Submission title's keyword set.
-
-        TODO: Needs substantial optimization.
 
         :return:
         """
@@ -277,8 +274,17 @@ class MachineLobe(Cerebrum):
         success_probability = values[3]
 
 
-        # Return a probability measure normalized to a range of [0, 1].
-        return self.normalize(success_probability, minimum= 0, maximum= 800)
+        # TODO: Perform substantial optimization.
+
+
+        if normalize:
+
+            # Return a probability measure normalized to a range of [0, 1].
+            return self.normalize(success_probability, minimum= 0, maximum= 800)
+
+        else:
+
+            return success_probability
 
 
 
@@ -322,14 +328,14 @@ class MachineLobe(Cerebrum):
         analysis["success_probability"] = self.probability(tuple(analysis.values()))
 
 
-        pprint(analysis)
+        # pprint(analysis)
 
 
         return analysis
 
 
 
-    def __analyze_submissions__(self, process: bool= False):
+    def __analyze_submissions__(self, process: bool= True):
         """
 
         :return:
@@ -340,8 +346,8 @@ class MachineLobe(Cerebrum):
 
         if process:
 
-            # Analyze every Submission collected.
-            for i, submission in self.submission_objects:
+            # Analyze every Submission collected, appending each analysis to 'analyses'.
+            for submission in self.submission_objects:
 
                 analyses.append(self.__analyze_submission__(submission))
 
@@ -349,15 +355,12 @@ class MachineLobe(Cerebrum):
         else:
 
             # Analyze every Submission collected.
-            for i, submission in self.submission_objects:
+            for submission in self.submission_objects:
 
                 self.__analyze_submission__(submission)
 
 
-
+        self.analyses = analyses
 
 
         return 0
-
-
-
