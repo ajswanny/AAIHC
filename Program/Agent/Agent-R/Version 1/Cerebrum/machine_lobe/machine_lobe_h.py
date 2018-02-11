@@ -79,9 +79,6 @@ class MachineLobe(Cerebrum):
         """
 
 
-        self.__analyze_submissions__()
-
-
         return 0
 
 
@@ -203,6 +200,9 @@ class MachineLobe(Cerebrum):
         # Command collection of Submission objects.
         self.submission_objects = self.input_lobe.__collect_submissions__(return_objects= True)
 
+        # Perform keyword-based success probability analysis.
+        self.__process_keyword_analysis__()
+
 
         return 0
 
@@ -259,7 +259,7 @@ class MachineLobe(Cerebrum):
 
 
 
-    def probability(self, values: tuple, normalize: bool= True):
+    def probability(self, method: str, values: tuple, normalize: bool= True):
         """
         Calculates the probability of success, judging this measure with respect to the intersection
         of keywords of the base keyword set and a given Submission title's keywords.
@@ -270,25 +270,66 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Initialize a probability measure.
-        success_probability = values[3]
-
-
         # TODO: Perform substantial optimization.
 
 
-        if normalize:
+        if method == "keyword":
 
-            # Return a probability measure normalized to a range of [0, 1].
-            return self.normalize(success_probability, minimum= 0, maximum= 800)
-
-        else:
-
-            return success_probability
+            # Initialize a probability measure; this tuple index refers to the sum of the amount of values
+            # in the intersection list. That is, the amount of keywords that intersected.
+            success_probability = values[3]
 
 
+            if normalize:
 
-    def __analyze_submission__(self, submission: reddit.Submission):
+                # Return a probability measure normalized to a range of [0, 1].
+                return self.normalize(success_probability, minimum= 0, maximum= 800)
+
+            else:
+
+                return success_probability
+
+
+
+    def __keyword_analysis__(self):
+        """
+        A high-level management method for keyword-based success probability analysis.
+
+        :return:
+        """
+
+        # Call loop-handler for keyword-based analysis.
+        self.__process_keyword_analysis__()
+
+        return self
+
+
+
+    def __process_keyword_analysis__(self):
+        """
+        A mid-level management method for keyword-based success probability analysis.
+        The purpose of this method is to allow for the monitoring of the keyword-based
+        analysis loop and provide accessibility to intervention for optimization or
+        modification.
+
+        :return:
+        """
+
+        # Declare new field to contain all keyword analyses for Submissions.
+        self.keyword_analyses = []
+
+
+        # Analyze every Submission collected, appending each analysis to 'analyses'.
+        for submission in self.submission_objects:
+
+            self.keyword_analyses.append(self.__analyze_submission_keywords__(submission))
+
+
+        return 0
+
+
+
+    def __analyze_submission_keywords__(self, submission: reddit.Submission):
         """
 
         :return:
@@ -335,32 +376,3 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __analyze_submissions__(self, process: bool= True):
-        """
-
-        :return:
-        """
-
-        analyses = []
-
-
-        if process:
-
-            # Analyze every Submission collected, appending each analysis to 'analyses'.
-            for submission in self.submission_objects:
-
-                analyses.append(self.__analyze_submission__(submission))
-
-
-        else:
-
-            # Analyze every Submission collected.
-            for submission in self.submission_objects:
-
-                self.__analyze_submission__(submission)
-
-
-        self.analyses = analyses
-
-
-        return 0

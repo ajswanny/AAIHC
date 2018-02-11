@@ -29,7 +29,7 @@ machine.__test_functionality__()
 import pandas
 
 
-x = pandas.DataFrame(machine.analyses)
+x = pandas.DataFrame(machine.keyword_analyses)
 
 
 print(x.head())
