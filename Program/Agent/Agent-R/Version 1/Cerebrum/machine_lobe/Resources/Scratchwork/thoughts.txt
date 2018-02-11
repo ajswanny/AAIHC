@@ -1,0 +1,9 @@
+Process:
+
+    - Set up dependencies.
+    - Generate Reddit client and collect Submission objects.
+    - Process each for success probability.
+    - Archive irrelevant Submissions.
+    - Determine appropriate message to post.
+
+    - Perform periodical check on Submissions engaged with.

@@ -34,3 +34,7 @@ class VectorMachine:
         return new_vector
 
 
+
+x = VectorMachine()
+
+y = x.new_vector(container=(1, 1, 1, 1, 1))

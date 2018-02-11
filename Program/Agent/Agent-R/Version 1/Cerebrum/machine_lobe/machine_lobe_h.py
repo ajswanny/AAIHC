@@ -53,6 +53,10 @@ class MachineLobe(Cerebrum):
         self.keywords_container = pandas.Series(self.keywords)
 
 
+        # TODO: Define the processing of the Standard Process applied to a Submission title and the Topic.
+        #   1. Submission Title Keyword Correlation Score
+
+
     #-}
 
 
@@ -79,20 +83,19 @@ class MachineLobe(Cerebrum):
         """
 
 
-        self.title_vector = numpy.array(["apple", 1, 2, 3, 4, 5])
-
-
         return 0
 
 
 
+    # noinspection PyAttributeOutsideInit
     def start(self, return_submissions= False):
         """
+        Begins the process of Work.
 
         :return:
         """
 
-        # Simply return the array of Submissions.
+        # Simply return the array of Submissions if 'return_submissions' is True.
         if return_submissions:
 
             self.input_lobe = self.__new_InputLobe__(reddit_instance=self.reddit_instance, subreddit="news")
@@ -100,11 +103,14 @@ class MachineLobe(Cerebrum):
             return self.input_lobe.__collect_submissions__()
 
 
+        # Output status.
         print("\n", "-" * 100, '\n',
               "The Machine Lobe has been instantiated and initialized.", '\n\n',
               "\t[1] Begin process. \t\t [2] Exit.", '\n',
               )
 
+
+        # Define True condition
         start_menu_run = True
 
 
