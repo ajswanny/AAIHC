@@ -312,6 +312,8 @@ class MachineLobe(Cerebrum):
 
 
         # Define a probability measure of success and append this to the 'analysis' dictionary.
+        # This figure is used to determine whether or not the agent will submit a textual expression
+        # to a Reddit Submission.
         analysis["success_probability"] = self.probability(tuple(analysis.values()))
 
 
@@ -322,11 +324,13 @@ class MachineLobe(Cerebrum):
 
 
 
-    def analyze_submissions(self, process: bool= False):
+    def __analyze_submissions__(self, process: bool= False):
         """
 
         :return:
         """
+
+        analyses = []
 
 
         if process:
@@ -334,7 +338,7 @@ class MachineLobe(Cerebrum):
             # Analyze every Submission collected.
             for i, submission in self.submission_objects:
 
-                self.__analyze_submission__(submission)
+                analyses.append(self.__analyze_submission__(submission))
 
 
         else:
