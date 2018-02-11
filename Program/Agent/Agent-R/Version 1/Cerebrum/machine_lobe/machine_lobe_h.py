@@ -77,7 +77,7 @@ class MachineLobe(Cerebrum):
 
 
     @staticmethod
-    def __intersect__(list_x: list, list_y: list):
+    def intersect(list_x: (list, tuple), list_y: list):
         """
 
         :param list_x:
@@ -125,7 +125,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Quick process override.
+        # Quick formal process override.
         if override:
 
             self.__action_choice__()
@@ -136,9 +136,9 @@ class MachineLobe(Cerebrum):
         # Simply return the array of Submissions if 'return_submissions' is True.
         if return_submissions:
 
-            self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
+            self.__input_lobe__ = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
 
-            return self.input_lobe.__collect_submissions__()
+            return self.__input_lobe__.__collect_submissions__()
 
 
         # Output status.
@@ -172,6 +172,20 @@ class MachineLobe(Cerebrum):
 
 
 
+    def __action_choice__(self):
+        """
+
+        :return:
+        """
+
+        self.start_menu_run = False
+        self.__setup_process__(method="standard")
+
+
+        return 0
+
+
+
     def __setup_process__(self, method: str):
         """
 
@@ -186,22 +200,7 @@ class MachineLobe(Cerebrum):
         elif method == "stream":
 
             # Unimplemented.
-            return
-
-
-        return 0
-
-
-
-    def __action_choice__(self):
-        """
-
-        :return:
-        """
-
-
-        self.start_menu_run = False
-        self.__setup_process__(method="standard")
+            pass
 
 
         return 0
@@ -215,16 +214,16 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-
         # Create InputLobe object to produce Submission metadata.
-        self.input_lobe = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit= "news")
+        self.__input_lobe__ = self.__new_InputLobe__(reddit_instance= self.reddit_instance, subreddit="news")
+
 
         # Command collection of Submission objects.
-        self.submission_objects = self.input_lobe.__collect_submissions__(return_objects= True)
+        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True)
+
 
         # Perform keyword-based success probability analysis.
         self.__process_keyword_analysis__()
-
 
         return 0
 
@@ -274,20 +273,6 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __keyword_analysis__(self):
-        """
-        A high-level management method for keyword-based success probability analysis.
-
-        :return:
-        """
-
-        # Call loop-handler for keyword-based analysis.
-        self.__process_keyword_analysis__()
-
-        return self
-
-
-
     def __process_keyword_analysis__(self):
         """
         A mid-level management method for keyword-based success probability analysis.
@@ -302,7 +287,7 @@ class MachineLobe(Cerebrum):
         self.keyword_analyses = []
 
 
-        # Analyze every Submission collected, appending each analysis to 'analyses'.
+        # Analyze every Submission collected, appending each analysis to 'keyword_analyses'.
         for submission in self.submission_objects:
 
             self.keyword_analyses.append(self.__analyze_submission_keywords__(submission))
@@ -330,7 +315,7 @@ class MachineLobe(Cerebrum):
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.__intersect__(self.placer__keywords_bag, __placer__keywords)
+        intersection = self.intersect(self.placer__keywords_bag, __placer__keywords)
 
 
         # Initialize the keyword intersection count.
