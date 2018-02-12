@@ -24,20 +24,32 @@ class MachineLobe(Cerebrum):
     The Machine Lobe, derivative of the Cerebrum.
     """
 
+    # TODO: Declare all Class fields here.
 
     # Declare global boolean operation controllers.
     engage = bool()                 # A boolean value to indicate if the Agent is to engage in utterance with Submissions.
     start_menu_run = bool()         # A boolean value to indicate if the start menu is running.
 
 
-    # The collection of topic keywords relative to Puerto Rico and the humanitarian crisis.
-    topic_keywords_bag_path = "Resources/topic_keywords.csv"
+    # TODO: Complete compilation of keywords.
+    # The location of the collection of topic keywords relative to Puerto Rico and the humanitarian crisis.
+    topic_keywords_bag_path = str()
+
+    # The collection of ptopic keywords and their measured relevance to the document.
+    __placer__ptopic_kwd_analysis = pandas.Series()
+
+    # The collection of ptopic keywords.
+    ptopic_kwds = tuple()
+
+    # The collection of completed keyword analysis for Reddit Submissions.
+    kwd_analyses = list()
+
 
     # The tuple of sentences to be used for expression utterance.
     utterance_sentences = tuple(open("Resources/utterance_sentences_(manual).txt").read().splitlines())
 
 
-    # The authentication for the Indico natural language processing API.
+    # The authentication for the Indico NLP API.
     indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 
 
@@ -72,7 +84,7 @@ class MachineLobe(Cerebrum):
 
 
         # Initialize dependencies for keyword analysis.
-        self.__init_keyword_metadata__()
+        self.__init_kwd_process_metadata__()
 
 
     #-}
@@ -93,7 +105,7 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __init_keyword_metadata__(self):
+    def __init_kwd_process_metadata__(self):
         """
         Init method to initialize all necessary keyword-relative data fields.
         :return:
@@ -101,12 +113,14 @@ class MachineLobe(Cerebrum):
 
         # TODO: Define the keywords collection.
         # A temporary definition of the collection of the topic keywords.
-        with open('../topic_keywords.json', 'r') as fp:
-            self.__placer__keywords_bag = pandas.Series(json.load(fp))
+        # NOTE: CURRENTLY USING ONLY THE FIRST COLLECTION OF PROBLEM TOPIC KEYWORDS; STILL COMPILING FULL COLLECTION.
+        with open("Resources/Problem_Topic_Keywords/v1/topic_keywords.json", 'r') as fp:
+
+            self.__placer__ptopic_kwd_analysis = pandas.Series(json.load(fp))
 
 
         # Declare new list to contain all keyword analyses for Submissions.
-        self.keyword_analyses = []
+        self.kwd_analyses = []
 
 
         return self
@@ -365,15 +379,15 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        for index, row in self.keyword_analyses.iterrows():
+        for index, row in self.kwd_analyses.iterrows():
 
-            if self.__clearance__(self.keyword_analyses.loc[index]):
+            if self.__clearance__(self.kwd_analyses.loc[index]):
 
                 # Create and deliver a message for the respective Submission.
                 # We provide the Submission object as the actionable Submission and the Submission metadata.
                 self.__output_lobe__.submit_submission_expression(
-                    actionable_submission= self.keyword_analyses.submission_object[index],
-                    content= self.__generate_utterance__(submission_data= self.keyword_analyses.loc[index])
+                    actionable_submission= self.kwd_analyses.submission_object[index],
+                    content= self.__generate_utterance__(submission_data= self.kwd_analyses.loc[index])
                 )
 
 
@@ -436,21 +450,21 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Analyze every Submission collected, appending each analysis to 'keyword_analyses'.
+        # Analyze every Submission collected, appending each analysis to 'kwd_analyses'.
         for submission in self.submission_objects:
 
-            self.keyword_analyses.append(self.__analyze_subm_keywords__(submission))
+            self.kwd_analyses.append(self.__analyze_subm_kwds__(submission))
 
             break
 
 
-        self.keyword_analyses = pandas.DataFrame(self.keyword_analyses)
+        self.kwd_analyses = pandas.DataFrame(self.kwd_analyses)
 
 
         return 0
 
     # noinspection PyDictCreation
-    def __analyze_subm_keywords__(self, submission: reddit.Submission):
+    def __analyze_subm_kwds__(self, submission: reddit.Submission):
         """
         'Analyze Submission Keywords'
 
@@ -481,7 +495,7 @@ class MachineLobe(Cerebrum):
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.__placer__keywords_bag, document_keywords)
+        intersection = self.intersect(self.__placer__ptopic_kwd_analysis, document_keywords)
 
 
         # Initialize the keyword intersection count.

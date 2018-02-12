@@ -19,4 +19,4 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 # Initialize the process.
 machine.start(override= True, work_subreddit= 'news', engage= False)
 
-print(machine.keyword_analyses.head())
+print(machine.kwd_analyses.head())
