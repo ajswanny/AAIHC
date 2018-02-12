@@ -4,6 +4,7 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 """
 
 
+
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 from Cerebrum.output_lobe.output_lobe_h import OutputLobe
@@ -11,11 +12,10 @@ from Cerebrum.output_lobe.output_lobe_h import OutputLobe
 import pandas
 import praw
 import praw.models as reddit
+import random
 from pprint import pprint
 
 
-
-# TODO: Implement use of InputLobe, processing, and OutputLobe.
 
 class MachineLobe(Cerebrum):
     """
@@ -24,11 +24,15 @@ class MachineLobe(Cerebrum):
 
 
     # Declare global boolean operation controllers.
-    engage = bool()
-    start_menu_run = bool()
+    engage = bool()                 # A boolean value to indicate if the Agent is to engage in utterance with Submissions.
+    start_menu_run = bool()         # A boolean value to indicate if the start menu is running.
 
 
+    # The collection of topic keywords relative to Puerto Rico and the humanitarian crisis.
     topic_keywords_bag_path = "Resources/topic_keywords.csv"
+
+    # The tuple of sentences to be used for expression utterance.
+    utterance_sentences = tuple(open("Resources/utterance_sentences_(manual).txt").read().splitlines())
 
 
     def __init__(self, platform: str, reddit_params: tuple, task: str = "Keyword Analysis and Expression"):
@@ -170,11 +174,10 @@ class MachineLobe(Cerebrum):
         At the moment, this measure is obtained simply and naively from the length of the intersection
         of the base keyword set and a given Submission title's keyword set.
 
+        # TODO: Substantial optimization.
+
         :return:
         """
-
-        # TODO: Perform substantial optimization.
-
 
         if method == "keyword":
 
@@ -223,8 +226,10 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Define True condition for 'engage'.
-        self.engage = True
+        # Define True condition for 'engage' if desired.
+        if engage:
+
+            self.engage = True
 
         # Define True condition for start menu run-state.
         self.start_menu_run = True
@@ -331,8 +336,10 @@ class MachineLobe(Cerebrum):
         self.__process_keyword_analysis__()
 
 
-        # Perform engagement.
-        self.__process_submission_engages__()
+        if self.engage:
+
+            # Perform engagement, determining for every Submission if it should be engaged and following through if so.
+            self.__process_submission_engages__()
 
 
 
@@ -359,16 +366,15 @@ class MachineLobe(Cerebrum):
                 )
 
 
-
-
-
         return 0
 
 
 
     def __clearance__(self, submission_data: pandas.Series):
         """
-        Determines if the Agent is to engage in a Submission.
+        Determines if the Agent is to engage in a Submission, observing the Submission metadata.
+
+        # TODO: Substantial optimization.
 
         :return:
         """
@@ -377,7 +383,6 @@ class MachineLobe(Cerebrum):
         clearance = False
 
 
-        # TODO: Substantial optimization required.
         # Define clearance condition.
         if (submission_data.success_probability and submission_data.intersection_size) > 1:
 
@@ -394,12 +399,12 @@ class MachineLobe(Cerebrum):
         """
         Generates a message to be submitted to a Reddit Submission.
 
+        Currently selecting a random choice, further versions will implement more intelligent utterance generation.
+
         :return:
         """
 
-
-
-        return str()
+        return random.choice(self.utterance_sentences)
 
 
 

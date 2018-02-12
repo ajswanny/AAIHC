@@ -17,18 +17,5 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True, work_subreddit= 'news', engage= True)
-
-
-# print(machine.keyword_analyses.info())
-
-
-# print(machine.keyword_analyses["submission_object"][0].title)
-
-
-# print(machine.keyword_analyses.head().to_string())
-
-# print(machine.keyword_analyses[1])
-
-
+# machine.start(override= True, work_subreddit= 'news', engage= True)
 
