@@ -1,4 +1,6 @@
 import indicoio
+import json
+import pandas
 
 indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 
@@ -12,7 +14,19 @@ indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 # ])
 
 
-x = indicoio.summarization("https://www.cnn.com/2017/10/20/us/puerto-rico-one-month-santiago/index.html")
+# x = indicoio.keywords("https://www.cnn.com/2017/10/20/us/puerto-rico-one-month-santiago/index.html")
+#
+# with open("../topic_keywords.txt", "w") as f:
+#
+#     json.dump(x, f)
 
 
-print(x)
+with open('../topic_keywords.json', 'r') as fp:
+    data = json.load(fp)
+
+
+series = pandas.Series(data)
+
+series.drop(labels= "Leyla", inplace= True)
+
+print(series)

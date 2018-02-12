@@ -9,6 +9,8 @@ from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 from Cerebrum.output_lobe.output_lobe_h import OutputLobe
 
+import indicoio
+import json
 import pandas
 import praw
 import praw.models as reddit
@@ -33,6 +35,10 @@ class MachineLobe(Cerebrum):
 
     # The tuple of sentences to be used for expression utterance.
     utterance_sentences = tuple(open("Resources/utterance_sentences_(manual).txt").read().splitlines())
+
+
+    # The authentication for the Indico natural language processing API.
+    indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 
 
     def __init__(self, platform: str, reddit_params: tuple, task: str = "Keyword Analysis and Expression"):
@@ -95,8 +101,8 @@ class MachineLobe(Cerebrum):
 
         # TODO: Define the keywords collection.
         # A temporary definition of the collection of the topic keywords.
-        df = pandas.read_csv("Resources/topic_keywords.csv")
-        self.__placer__keywords_bag = tuple(df.columns.values)
+        with open('../topic_keywords.json', 'r') as fp:
+            self.__placer__keywords_bag = pandas.Series(json.load(fp))
 
 
         # Declare new list to contain all keyword analyses for Submissions.
@@ -420,8 +426,6 @@ class MachineLobe(Cerebrum):
 
 
 
-
-
     def __process_keyword_analysis__(self):
         """
         A mid-level management method for keyword-based success probability analysis.
@@ -436,6 +440,8 @@ class MachineLobe(Cerebrum):
         for submission in self.submission_objects:
 
             self.keyword_analyses.append(self.__analyze_subm_keywords__(submission))
+
+            break
 
 
         self.keyword_analyses = pandas.DataFrame(self.keyword_analyses)
@@ -462,13 +468,20 @@ class MachineLobe(Cerebrum):
         # TODO: Implement reliable collection of keywords.
         # TODO: Select API.
 
-        #-
-        __placer__keywords = ["alpha", "beta", "omega", "charlie", "foxtrot"]
-        #-
+        # TODO: Determine if we want to make use of the relevance to document of keywords provided by the Indico NLP API.
+        # TODO: Determine if we want to implement use of the linked article.
+        # TODO: Determine if we want to incorporate the use of "KEYWORD PHRASES," not just keywords.
+
+
+        # Define the keywords for the given Submission title.
+        # NOTE: CURRENTLY USING JUST THE KEYWORDS GIVEN; NOT INCLUDING THEIR LIKELY RELEVANCE.
+        document_keyword_analysis = indicoio.keywords(submission.title)
+        document_keywords = tuple(document_keyword_analysis.keys())
+
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.__placer__keywords_bag, __placer__keywords)
+        intersection = self.intersect(self.__placer__keywords_bag, document_keywords)
 
 
         # Initialize the keyword intersection count.
