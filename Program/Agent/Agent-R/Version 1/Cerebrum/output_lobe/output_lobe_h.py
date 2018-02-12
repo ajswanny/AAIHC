@@ -49,7 +49,7 @@ class OutputLobe(Cerebrum):
         # Perform expression utterance to the given Reddit Submission.
         actionable_submission.reply(
 
-            content
+            body= content
 
         )
 
