@@ -1,5 +1,7 @@
 from Cerebrum.machine_lobe.machine_lobe_h import MachineLobe
 from pprint import pprint
+import pandas
+
 
 
 # Define the credentials for the Reddit object.
@@ -15,24 +17,18 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True, work_subreddit= 'news')
+machine.start(override= True, work_subreddit= 'news', engage= True)
 
 
+# print(machine.keyword_analyses.info())
 
 
-
-import pandas
-
-
-x = pandas.DataFrame(machine.keyword_analyses)
+# print(machine.keyword_analyses["submission_object"][0].title)
 
 
-print(x.info())
+# print(machine.keyword_analyses.head().to_string())
 
-
-
-
-
+# print(machine.keyword_analyses[1])
 
 
 

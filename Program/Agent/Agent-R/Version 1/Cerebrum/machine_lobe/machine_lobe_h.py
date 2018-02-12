@@ -23,6 +23,11 @@ class MachineLobe(Cerebrum):
     """
 
 
+    # Declare global boolean operation controllers.
+    engage = bool()
+    start_menu_run = bool()
+
+
     topic_keywords_bag_path = "Resources/topic_keywords.csv"
 
 
@@ -71,7 +76,7 @@ class MachineLobe(Cerebrum):
             subreddit= work_subreddit
         )
 
-        self.output_lobe = self.__new_OutputLobe__(
+        self.__output_lobe__ = self.__new_OutputLobe__(
             reddit_instance= self.reddit_instance,
             subreddit= work_subreddit
         )
@@ -122,7 +127,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        return InputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
+        return OutputLobe(reddit_instance= reddit_instance, subreddit= subreddit)
 
 
 
@@ -201,7 +206,7 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyAttributeOutsideInit
-    def start(self, work_subreddit: str, override: bool= False):
+    def start(self, work_subreddit: str, engage: bool, override: bool= False):
         """
         Begins the process of Work.
 
@@ -218,6 +223,13 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        # Define True condition for 'engage'.
+        self.engage = True
+
+        # Define True condition for start menu run-state.
+        self.start_menu_run = True
+
+
         # Quick formal process override.
         if override:
 
@@ -231,10 +243,6 @@ class MachineLobe(Cerebrum):
               "The Machine Lobe has been instantiated and initialized.", '\n\n',
               "\t[1] Begin KeywordWork process. \t\t [2] Exit.", '\n',
               )
-
-
-        # Define True condition for start menu run-state.
-        self.start_menu_run = True
 
 
         while self.start_menu_run:
@@ -319,24 +327,81 @@ class MachineLobe(Cerebrum):
         self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True)
 
 
-        # Perform keyword-based success probability analysis.
+        # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
         self.__process_keyword_analysis__()
+
+
+        # Perform engagement.
+        self.__process_submission_engages__()
+
 
 
         return 0
 
 
 
-    def __stream_process__(self):
+    def __process_submission_engages__(self):
         """
+        Conducts the engagement actions of the Agent.
 
         :return:
         """
 
-        print(self.reddit_instance)
+        for index, row in self.keyword_analyses.iterrows():
+
+            if self.__clearance__(self.keyword_analyses.loc[index]):
+
+                # Create and deliver a message for the respective Submission.
+                # We provide the Submission object as the actionable Submission and the Submission metadata.
+                self.__output_lobe__.submit_submission_expression(
+                    actionable_submission= self.keyword_analyses.submission_object[index],
+                    content= self.__generate_utterance__(submission_data= self.keyword_analyses.loc[index])
+                )
+
+
+
 
 
         return 0
+
+
+
+    def __clearance__(self, submission_data: pandas.Series):
+        """
+        Determines if the Agent is to engage in a Submission.
+
+        :return:
+        """
+
+        # Initialize a clearance determination.
+        clearance = False
+
+
+        # TODO: Substantial optimization required.
+        # Define clearance condition.
+        if (submission_data.success_probability and submission_data.intersection_size) > 1:
+
+            print(submission_data.success_probability)
+            print(submission_data.intersection_size)
+            clearance = True
+
+
+        return clearance
+
+
+
+    def __generate_utterance__(self, submission_data: pandas.Series):
+        """
+        Generates a message to be submitted to a Reddit Submission.
+
+        :return:
+        """
+
+
+
+        return str()
+
+
 
 
 
@@ -356,10 +421,12 @@ class MachineLobe(Cerebrum):
             self.keyword_analyses.append(self.__analyze_subm_keywords__(submission))
 
 
+        self.keyword_analyses = pandas.DataFrame(self.keyword_analyses)
+
+
         return 0
 
-
-
+    # noinspection PyDictCreation
     def __analyze_subm_keywords__(self, submission: reddit.Submission):
         """
         'Analyze Submission Keywords'
@@ -405,7 +472,24 @@ class MachineLobe(Cerebrum):
         analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
 
 
+        # Append Submission object to the analysis.
+        analysis["submission_object"] = submission
+
         # pprint(analysis)
 
 
         return analysis
+
+
+
+    def __stream_process__(self):
+        """
+
+        :return:
+        """
+
+        print(self.reddit_instance)
+
+
+        return 0
+
