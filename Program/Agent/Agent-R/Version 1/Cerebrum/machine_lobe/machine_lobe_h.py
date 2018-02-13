@@ -425,6 +425,8 @@ class MachineLobe(Cerebrum):
 
 
         # Define clearance condition.
+        # FIXME: Currently using a naive measure of success probability and an intersection size of
+        # FIXME: greater than 1. Must determine the final versions of this part of the algorithm.
         if (submission_data.success_probability and submission_data.intersection_size) > 1:
 
             print(submission_data.success_probability)
