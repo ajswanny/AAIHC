@@ -156,7 +156,7 @@ class MachineLobe(Cerebrum):
 
 
     @staticmethod
-    def intersect(list_x: (list, tuple), list_y: list):
+    def intersect(list_x: (list, tuple), list_y: (list, tuple)):
         """
 
         :param list_x:
@@ -455,6 +455,7 @@ class MachineLobe(Cerebrum):
 
             self.kwd_analyses.append(self.__analyze_subm_kwds__(submission))
 
+            # FIXME: Break statement here to debug Indico API embedded functionality.
             break
 
 
@@ -462,6 +463,8 @@ class MachineLobe(Cerebrum):
 
 
         return 0
+
+
 
     # noinspection PyDictCreation
     def __analyze_subm_kwds__(self, submission: reddit.Submission):
@@ -486,6 +489,8 @@ class MachineLobe(Cerebrum):
         # TODO: Determine if we want to implement use of the linked article.
         # TODO: Determine if we want to incorporate the use of "KEYWORD PHRASES," not just keywords.
 
+        # TODO: Create normalization function for keyword collections.
+
 
         # Define the keywords for the given Submission title.
         # NOTE: CURRENTLY USING JUST THE KEYWORDS GIVEN; NOT INCLUDING THEIR LIKELY RELEVANCE.
@@ -495,7 +500,7 @@ class MachineLobe(Cerebrum):
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.__placer__ptopic_kwd_analysis, document_keywords)
+        intersection = self.intersect(self.ptopic_kwds, document_keywords)
 
 
         # Initialize the keyword intersection count.
@@ -508,6 +513,7 @@ class MachineLobe(Cerebrum):
             "submission_title": submission.title,
             "keywords_intersection": intersection,
             "intersection_size": keywords_intersections_count,
+            "document_kwds": document_keywords
         }
 
 
