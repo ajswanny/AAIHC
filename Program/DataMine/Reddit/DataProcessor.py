@@ -828,7 +828,7 @@ class DataProcessor:
     # TODO: Optimize
     def generate_statistics(params: tuple, file_path: str):
         """
-        Calculates the statistics for 'DF'.
+        Calculates and records the statistics for 'DF'.
 
         :return:
         """

@@ -9,6 +9,7 @@ from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 from Cerebrum.output_lobe.output_lobe_h import OutputLobe
 
+from datetime import datetime
 import indicoio
 import json
 import pandas
@@ -16,6 +17,7 @@ import praw
 import praw.models as reddit
 import random
 from pprint import pprint
+
 
 
 
@@ -125,12 +127,32 @@ class MachineLobe(Cerebrum):
             columns= [
                 'document_kwds', 'intersection_size', 'keywords_intersection',
                 'submission_id', 'submission_object', 'submission_title',
-                'success_probability', 'utterance_content'
+                'success_probability', 'utterance_content', 'engagement_time'
             ]
         )
 
 
+        # Define location of the JSON file to periodically store '_main_kwd_df_'.
+        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df_.json"
+
+
         return self
+
+
+
+    def archive_dataframe(self):
+        """
+        Currently archives field: '_main_kwd_df_'. Future development will see this method allow for the archival of
+        any specified Class data field.
+        # FIXME: Update.
+
+        :return:
+        """
+
+        self._main_kwd_df_.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
+
+
+        return 0
 
 
 
@@ -358,7 +380,7 @@ class MachineLobe(Cerebrum):
         # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
         # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
         # '__init_operation_lobes__' method.
-        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True)
+        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True, fetch_limit=1)
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
@@ -370,7 +392,13 @@ class MachineLobe(Cerebrum):
             # Perform engagement, determining for every Submission if it should be engaged and following through if so.
             self.__process_submission_engages__()
 
+
+            # Redefine 'engage' boolean controller.
             self.engage = False
+
+
+        # Archive '_main_kwd_df'.
+        self.archive_dataframe()
 
 
         return 0
@@ -402,6 +430,11 @@ class MachineLobe(Cerebrum):
                     actionable_submission= self._main_kwd_df_.submission_object[index],
                     content= self.__generate_utterance__(submission_data= self._main_kwd_df_.loc[index])
                 )
+
+
+                # Record the engagement time.
+                self._main_kwd_df_.at[index, "engagement_time"] = datetime.utcnow()
+
 
                 break
 
