@@ -40,10 +40,10 @@ class MachineLobe(Cerebrum):
     topic_keywords_bag_path = str()
 
     # The collection of ptopic keywords and their measured relevance to the document.
-    __placer__ptopic_kwds__ = pandas.Series()
+    _placer_ptopic_kwds_rated = pandas.Series()
 
     # The collection of ptopic keywords.
-    ptopic_kwds = tuple()
+    ptopic_kwds_bag = tuple()
 
     # The collection of completed keyword analysis for Reddit Submissions.
     _main_kwd_df = pandas.DataFrame()
@@ -120,7 +120,14 @@ class MachineLobe(Cerebrum):
         # NOTE: CURRENTLY USING ONLY THE FIRST COLLECTION OF PROBLEM TOPIC KEYWORDS; STILL COMPILING FULL COLLECTION.
         with open("Resources/Problem_Topic_Keywords/v1/topic_keywords.json", 'r') as fp:
 
-            self.__placer__ptopic_kwds__ = pandas.Series(json.load(fp))
+            self._placer_ptopic_kwds_rated = pandas.Series(json.load(fp))
+
+
+        # Define the bag of words for the problem topic keyword data.
+        self.ptopic_kwds_bag = tuple(self._placer_ptopic_kwds_rated.index.values)
+
+        # Normalize 'ptopic_kwds_bag', converting all keywords to lowercase strings.
+        self.ptopic_kwds_bag = list(map(lambda x: x.lower(), self.ptopic_kwds_bag))
 
 
         # TODO: Formally define each element.
@@ -587,7 +594,7 @@ class MachineLobe(Cerebrum):
 
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.ptopic_kwds, document_keywords)
+        intersection = self.intersect(self.ptopic_kwds_bag, document_keywords)
 
 
         # Initialize the keyword intersection count.

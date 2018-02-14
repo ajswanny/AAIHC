@@ -17,7 +17,7 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True, work_subreddit= 'news', engage= True)
+machine.start(override= True, work_subreddit= 'news', engage= False)
 
 print(machine._main_kwd_df.loc[0])
 print("\n\n\n", machine._main_kwd_df)
