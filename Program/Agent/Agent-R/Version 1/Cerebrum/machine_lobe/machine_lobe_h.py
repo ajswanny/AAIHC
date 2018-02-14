@@ -46,7 +46,7 @@ class MachineLobe(Cerebrum):
     ptopic_kwds = tuple()
 
     # The collection of completed keyword analysis for Reddit Submissions.
-    __main_kwd_df__ = pandas.DataFrame()
+    _main_kwd_df = pandas.DataFrame()
 
 
     # The tuple of sentences to be used for expression utterance.
@@ -97,12 +97,12 @@ class MachineLobe(Cerebrum):
 
     def __init_operation_lobes__(self, work_subreddit: str):
 
-        self.__input_lobe__ = self.__new_InputLobe__(
+        self._input_lobe = self.__new_InputLobe__(
             reddit_instance= self.reddit_instance,
             subreddit= work_subreddit
         )
 
-        self.__output_lobe__ = self.__new_OutputLobe__(
+        self._output_lobe = self.__new_OutputLobe__(
             reddit_instance= self.reddit_instance,
             subreddit= work_subreddit
         )
@@ -125,7 +125,7 @@ class MachineLobe(Cerebrum):
 
         # TODO: Formally define each element.
         # Declare the main operation DataFrame.
-        self.__main_kwd_df__ = pandas.DataFrame(
+        self._main_kwd_df = pandas.DataFrame(
             columns= [
                 'document_kwds', 'intersection_size', 'keywords_intersection',
                 'submission_id', 'submission_object', 'submission_title',
@@ -134,8 +134,8 @@ class MachineLobe(Cerebrum):
         )
 
 
-        # Define location of the JSON file to periodically store '__main_kwd_df__'.
-        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/__main_kwd_df__.json"
+        # Define location of the JSON file to periodically store '_main_kwd_df'.
+        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df.json"
 
 
         return self
@@ -144,7 +144,7 @@ class MachineLobe(Cerebrum):
 
     def archive_dataframe(self):
         """
-        Currently archives field: '__main_kwd_df__'. Future development will see this method allow for the archival of
+        Currently archives field: '_main_kwd_df'. Future development will see this method allow for the archival of
         any specified Class data field.
         # FIXME: Update.
 
@@ -157,7 +157,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        self.__main_kwd_df__.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
+        self._main_kwd_df.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
 
 
         return 0
@@ -246,6 +246,7 @@ class MachineLobe(Cerebrum):
             if normalize:
 
                 # Return a probability measure normalized to a range of [0, 1].
+                # TODO: Update maximum. This will be the amount of keywords we use for the problem topic.
                 return self.normalize(success_probability, minimum= 0, maximum= 800)
 
             else:
@@ -260,7 +261,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        print(type(self.__main_kwd_df__))
+        print(type(self._main_kwd_df))
 
         return 0
 
@@ -389,7 +390,7 @@ class MachineLobe(Cerebrum):
         # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
         # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
         # '__init_operation_lobes__' method.
-        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True, fetch_limit= 1)
+        self.submission_objects = self._input_lobe.__collect_submissions__(return_objects= True, fetch_limit= 1)
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
@@ -424,23 +425,23 @@ class MachineLobe(Cerebrum):
 
         def out(x: tuple):
 
-            self.__output_lobe__.submit_submission_expression(x[0], x[1])
+            self._output_lobe.submit_submission_expression(x[0], x[1])
 
 
-        for index, row in self.__main_kwd_df__.iterrows():
+        for index, row in self._main_kwd_df.iterrows():
 
-            if self.__clearance__(self.__main_kwd_df__.loc[index]):
+            if self.__clearance__(self._main_kwd_df.loc[index]):
 
                 # Generate the utterance message.
-                utterance_message = self.__generate_utterance__(submission_data= self.__main_kwd_df__.loc[index])
+                utterance_message = self.__generate_utterance__(submission_data= self._main_kwd_df.loc[index])
 
 
                 # Define container of data for operation of Submission engage.
-                operation_fields = (self.__main_kwd_df__.submission_object[index], utterance_message)
+                operation_fields = (self._main_kwd_df.submission_object[index], utterance_message)
 
 
                 # Archive the utterance message content.
-                self.__main_kwd_df__.at[index, "utterance_content"] = utterance_message
+                self._main_kwd_df.at[index, "utterance_content"] = utterance_message
 
 
                 try:
@@ -461,7 +462,7 @@ class MachineLobe(Cerebrum):
 
 
                 # Record the engagement time.
-                self.__main_kwd_df__.at[index, "engagement_time"] = str(datetime.now())
+                self._main_kwd_df.at[index, "engagement_time"] = str(datetime.now())
 
 
                 break
@@ -533,7 +534,7 @@ class MachineLobe(Cerebrum):
         __temp__keyword_analyses = []
 
 
-        # Analyze every Submission collected, appending each analysis to '__main_kwd_df__'.
+        # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
         for submission in self.submission_objects:
 
             __temp__keyword_analyses.append(self.__analyze_subm_kwds__(submission))
@@ -545,7 +546,7 @@ class MachineLobe(Cerebrum):
         # Redefine the main KWD DataFrame to contain all keyword analyses.
         __temp__keyword_analyses = pandas.DataFrame(__temp__keyword_analyses)
 
-        self.__main_kwd_df__ = pandas.concat([self.__main_kwd_df__, __temp__keyword_analyses])
+        self._main_kwd_df = pandas.concat([self._main_kwd_df, __temp__keyword_analyses])
 
 
         return 0
@@ -606,6 +607,7 @@ class MachineLobe(Cerebrum):
         # Define a probability measure of success and append this to the 'analysis' dictionary.
         # This figure is used to determine whether or not the Agent will submit a textual expression
         # to a Reddit Submission.
+        # TODO: This measure is to be optimized in the future.
         analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
 
 
