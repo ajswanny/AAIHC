@@ -13,10 +13,12 @@ from datetime import datetime
 import indicoio
 import json
 import pandas
+from pprint import pprint
 import praw
+import praw.exceptions
 import praw.models as reddit
 import random
-from pprint import pprint
+import time
 
 
 
@@ -33,18 +35,18 @@ class MachineLobe(Cerebrum):
     start_menu_run = bool()         # A boolean value to indicate if the start menu is running.
 
 
-    # TODO: Complete compilation of keywords.
+    # TODO: Complete compilation of ptopic keywords.
     # The location of the collection of topic keywords relative to Puerto Rico and the humanitarian crisis.
     topic_keywords_bag_path = str()
 
     # The collection of ptopic keywords and their measured relevance to the document.
-    __placer__ptopic_kwd_analysis = pandas.Series()
+    __placer__ptopic_kwds__ = pandas.Series()
 
     # The collection of ptopic keywords.
     ptopic_kwds = tuple()
 
     # The collection of completed keyword analysis for Reddit Submissions.
-    _main_kwd_df_ = list()
+    __main_kwd_df__ = pandas.DataFrame()
 
 
     # The tuple of sentences to be used for expression utterance.
@@ -118,12 +120,12 @@ class MachineLobe(Cerebrum):
         # NOTE: CURRENTLY USING ONLY THE FIRST COLLECTION OF PROBLEM TOPIC KEYWORDS; STILL COMPILING FULL COLLECTION.
         with open("Resources/Problem_Topic_Keywords/v1/topic_keywords.json", 'r') as fp:
 
-            self.__placer__ptopic_kwd_analysis = pandas.Series(json.load(fp))
+            self.__placer__ptopic_kwds__ = pandas.Series(json.load(fp))
 
 
         # TODO: Formally define each element.
         # Declare the main operation DataFrame.
-        self._main_kwd_df_ = pandas.DataFrame(
+        self.__main_kwd_df__ = pandas.DataFrame(
             columns= [
                 'document_kwds', 'intersection_size', 'keywords_intersection',
                 'submission_id', 'submission_object', 'submission_title',
@@ -132,8 +134,8 @@ class MachineLobe(Cerebrum):
         )
 
 
-        # Define location of the JSON file to periodically store '_main_kwd_df_'.
-        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df_.json"
+        # Define location of the JSON file to periodically store '__main_kwd_df__'.
+        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/__main_kwd_df__.json"
 
 
         return self
@@ -142,7 +144,7 @@ class MachineLobe(Cerebrum):
 
     def archive_dataframe(self):
         """
-        Currently archives field: '_main_kwd_df_'. Future development will see this method allow for the archival of
+        Currently archives field: '__main_kwd_df__'. Future development will see this method allow for the archival of
         any specified Class data field.
         # FIXME: Update.
 
@@ -155,7 +157,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        self._main_kwd_df_.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
+        self.__main_kwd_df__.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
 
 
         return 0
@@ -258,6 +260,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        print(type(self.__main_kwd_df__))
 
         return 0
 
@@ -386,7 +389,7 @@ class MachineLobe(Cerebrum):
         # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
         # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
         # '__init_operation_lobes__' method.
-        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True, fetch_limit=1)
+        self.submission_objects = self.__input_lobe__.__collect_submissions__(return_objects= True, fetch_limit= 1)
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
@@ -405,7 +408,7 @@ class MachineLobe(Cerebrum):
 
         # Archive '_main_kwd_df'.
         # FIXME: UNKNOWN ERROR.
-        self.archive_dataframe()
+        # self.archive_dataframe()
 
 
         return 0
@@ -419,28 +422,46 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        for index, row in self._main_kwd_df_.iterrows():
+        def out(x: tuple):
 
-            if not self.__clearance__(self._main_kwd_df_.loc[index]):
+            self.__output_lobe__.submit_submission_expression(x[0], x[1])
+
+
+        for index, row in self.__main_kwd_df__.iterrows():
+
+            if self.__clearance__(self.__main_kwd_df__.loc[index]):
 
                 # Generate the utterance message.
-                utterance_message = self.__generate_utterance__(submission_data= self._main_kwd_df_.loc[index])
+                utterance_message = self.__generate_utterance__(submission_data= self.__main_kwd_df__.loc[index])
+
+
+                # Define container of data for operation of Submission engage.
+                operation_fields = (self.__main_kwd_df__.submission_object[index], utterance_message)
 
 
                 # Archive the utterance message content.
-                self._main_kwd_df_.at[index, "utterance_content"] = utterance_message
+                self.__main_kwd_df__.at[index, "utterance_content"] = utterance_message
 
 
-                # Create and deliver a message for the respective Submission.
-                # We provide the Submission object as the actionable Submission and the Submission metadata.
-                self.__output_lobe__.submit_submission_expression(
-                    actionable_submission= self._main_kwd_df_.submission_object[index],
-                    content= self.__generate_utterance__(submission_data= self._main_kwd_df_.loc[index])
-                )
+                try:
+
+                    # Create and deliver a message for the respective Submission.
+                    # We provide the Submission object as the actionable Submission and the Submission metadata.
+                    out(operation_fields)
+
+                except praw.exceptions.APIException as E:
+
+                    # Output error details and delay operation.
+                    print("Caught error: ", E.message, "\nWaiting...")
+                    time.sleep(600)
+
+                finally:
+
+                    out(operation_fields)
 
 
                 # Record the engagement time.
-                self._main_kwd_df_.at[index, "engagement_time"] = datetime.utcnow()
+                self.__main_kwd_df__.at[index, "engagement_time"] = str(datetime.now())
 
 
                 break
@@ -512,7 +533,7 @@ class MachineLobe(Cerebrum):
         __temp__keyword_analyses = []
 
 
-        # Analyze every Submission collected, appending each analysis to '_main_kwd_df_'.
+        # Analyze every Submission collected, appending each analysis to '__main_kwd_df__'.
         for submission in self.submission_objects:
 
             __temp__keyword_analyses.append(self.__analyze_subm_kwds__(submission))
@@ -524,7 +545,7 @@ class MachineLobe(Cerebrum):
         # Redefine the main KWD DataFrame to contain all keyword analyses.
         __temp__keyword_analyses = pandas.DataFrame(__temp__keyword_analyses)
 
-        self._main_kwd_df_ = pandas.concat([self._main_kwd_df_, __temp__keyword_analyses])
+        self.__main_kwd_df__ = pandas.concat([self.__main_kwd_df__, __temp__keyword_analyses])
 
 
         return 0

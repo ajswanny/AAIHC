@@ -17,7 +17,13 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True, work_subreddit= 'news', engage= False)
+machine.start(override= True, work_subreddit= 'news', engage= True)
 
-print(machine._main_kwd_df_.loc[0])
+print(machine.__main_kwd_df__.loc[0])
+print("\n\n\n", machine.__main_kwd_df__)
+
+machine.__main_kwd_df__.to_json("/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/__main_kwd_df__.json")
+
+# machine.__test_functionality__()
+
 
