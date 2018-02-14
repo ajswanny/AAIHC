@@ -1,4 +1,4 @@
-Process:
+Algorithm Steps:
 
     - Set up dependencies.
     - Generate Reddit client and collect Submission objects.
@@ -7,3 +7,21 @@ Process:
     - Determine appropriate message to post.
 
     - Perform periodical check on Submissions engaged with.
+
+
+
+Possible Improvements for Textual Expression (Utterance) Selection:
+    -  Define different categories of choices with selection based on specific keywords...
+        - Example: choosing a sentence relating "corruption" to Puerto Rico if the word "corruption"
+        is in the Submission title.
+
+    - Using content of linked article to determine High-Level Textual Expression.
+
+    - Comment Analysis (Phase I & Phase II)
+        - Phase I
+            - Using comments content to determine High-Level Textual Expression.
+
+
+Questions for 2/14/18 Meeting:
+    - Should we continue simply with random selection of manually composed sentences?
+
