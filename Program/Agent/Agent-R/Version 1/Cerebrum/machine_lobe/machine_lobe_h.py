@@ -167,22 +167,18 @@ class MachineLobe(Cerebrum):
 
 
 
-    def archive_dataframe(self):
+    def archive_main_dataframe(self):
         """
         Currently archives field: '_main_kwd_df'. Future development will see this method allow for the archival of
         any specified Class data field.
-        # FIXME: Update.
 
-
-
-        # FIXME: UNKNOWN ERROR.
-
-
+        # TODO: Update to allow for archival of any specified DataFrame.
 
         :return:
         """
 
-        self._main_kwd_df.to_json(path_or_buf = self.FILEPATH_main_kwd_df)
+        # Archive '_main_kwd_df'.
+        self._main_kwd_df.drop("submission_object", 1).to_json(path_or_buf = self.FILEPATH_main_kwd_df)
 
 
         return 0
@@ -418,9 +414,6 @@ class MachineLobe(Cerebrum):
         self.submission_objects = self._input_lobe.__collect_submissions__(return_objects= True, fetch_limit= 1)
 
 
-        self._main_kwd_df.to_json(self.FILEPATH_main_kwd_df)
-
-
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
         self.__process_keyword_analysis__()
 
@@ -436,11 +429,16 @@ class MachineLobe(Cerebrum):
 
 
         # Archive '_main_kwd_df'.
-        # FIXME: UNKNOWN ERROR.
-        # self.archive_dataframe()
+        self.archive_main_dataframe()
 
 
         return 0
+
+
+
+    def out(self, x: tuple):
+
+        self._output_lobe.submit_submission_expression(x[0], x[1])
 
 
 
@@ -451,14 +449,10 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        def out(x: tuple):
-
-            self._output_lobe.submit_submission_expression(x[0], x[1])
-
 
         for index, row in self._main_kwd_df.iterrows():
 
-            if self.__clearance__(self._main_kwd_df.loc[index]):
+            if not self.__clearance__(self._main_kwd_df.loc[index]):
 
                 # Generate the utterance message.
                 utterance_message = self.__generate_utterance__(submission_data= self._main_kwd_df.loc[index])
@@ -476,7 +470,7 @@ class MachineLobe(Cerebrum):
 
                     # Create and deliver a message for the respective Submission.
                     # We provide the Submission object as the actionable Submission and the Submission metadata.
-                    out(operation_fields)
+                    self.out(operation_fields)
 
                 except praw.exceptions.APIException as E:
 
@@ -486,7 +480,7 @@ class MachineLobe(Cerebrum):
 
                 finally:
 
-                    out(operation_fields)
+                    self.out(operation_fields)
 
 
                 # Record the engagement time.
@@ -559,25 +553,36 @@ class MachineLobe(Cerebrum):
         """
 
         # Create temporary container for keyword analyses.
-        __temp__keyword_analyses = []
+        keyword_analyses = []
 
 
         # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
         for submission in self.submission_objects:
 
-            __temp__keyword_analyses.append(self.__analyze_subm_kwds__(submission))
-
-            # FIXME: Break statement here to debug Indico API embedded functionality.
-            break
+            keyword_analyses.append(self.__analyze_subm_kwds__(submission))
 
 
-        # Redefine the main KWD DataFrame to contain all keyword analyses.
-        __temp__keyword_analyses = pandas.DataFrame(__temp__keyword_analyses)
+        # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
+        keyword_analyses = pandas.DataFrame(keyword_analyses)
 
-        self._main_kwd_df = pandas.concat([self._main_kwd_df, __temp__keyword_analyses])
+
+        # Update '_main_kwd_df'.
+        self._main_kwd_df = pandas.concat([self._main_kwd_df, keyword_analyses])
 
 
         return 0
+
+
+
+    def __get_reddit_submission__(self, submission_id: str):
+        """
+        Returns a Reddit Submisssion object using a Submission unique ID.
+
+        :param submission_id:
+        :return:
+        """
+
+        return self.reddit_instance.submission(id= submission_id)
 
 
 
@@ -627,7 +632,7 @@ class MachineLobe(Cerebrum):
             "submission_id": submission.id,
             "submission_title": submission.title,
             "keywords_intersection": intersection,
-            "intersection_size": keywords_intersections_count,
+            "intersection_size": float(keywords_intersections_count),
             "document_kwds": document_keywords
         }
 
@@ -640,6 +645,8 @@ class MachineLobe(Cerebrum):
 
 
         # Append Submission object to the analysis.
+        # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
+        # overflow error.
         analysis["submission_object"] = submission
 
 
