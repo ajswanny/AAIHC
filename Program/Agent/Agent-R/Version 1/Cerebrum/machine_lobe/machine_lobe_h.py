@@ -45,6 +45,9 @@ class MachineLobe(Cerebrum):
     # The collection of ptopic keywords.
     ptopic_kwds_bag = tuple()
 
+    # The tuple containing English stop words.
+    stop_words = tuple(open("Resources/stopwords.txt").read().splitlines())
+
     # The collection of completed keyword analysis for Reddit Submissions.
     _main_kwd_df = pandas.DataFrame()
 
@@ -91,6 +94,7 @@ class MachineLobe(Cerebrum):
         self.__init_kwd_process_metadata__()
 
 
+
     #-}
 
 
@@ -129,6 +133,9 @@ class MachineLobe(Cerebrum):
         # Normalize 'ptopic_kwds_bag', converting all keywords to lowercase strings.
         self.ptopic_kwds_bag = list(map(lambda x: x.lower(), self.ptopic_kwds_bag))
 
+        # Remove stop words.
+        self.ptopic_kwds_bag = self.remove_stopwords(self.ptopic_kwds_bag)
+
 
         # TODO: Formally define each element.
         # Declare the main operation DataFrame.
@@ -142,10 +149,21 @@ class MachineLobe(Cerebrum):
 
 
         # Define location of the JSON file to periodically store '_main_kwd_df'.
-        self.FILEPATH_main_kwd_df_ = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df.json"
+        self.FILEPATH_main_kwd_df = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df.json"
 
 
         return self
+
+
+    def remove_stopwords(self, corpus: (list, tuple)):
+        """
+
+        :param corpus:
+        :return:
+        """
+
+        return [word for word in corpus if word not in self.stop_words]
+
 
 
 
@@ -164,7 +182,7 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        self._main_kwd_df.to_json(path_or_buf = self.FILEPATH_main_kwd_df_)
+        self._main_kwd_df.to_json(path_or_buf = self.FILEPATH_main_kwd_df)
 
 
         return 0
@@ -398,6 +416,9 @@ class MachineLobe(Cerebrum):
         # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
         # '__init_operation_lobes__' method.
         self.submission_objects = self._input_lobe.__collect_submissions__(return_objects= True, fetch_limit= 1)
+
+
+        self._main_kwd_df.to_json(self.FILEPATH_main_kwd_df)
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
