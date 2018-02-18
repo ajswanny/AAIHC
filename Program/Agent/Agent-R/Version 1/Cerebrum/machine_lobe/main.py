@@ -17,7 +17,7 @@ machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
 
 
 # Initialize the process.
-machine.start(override= True, work_subreddit= 'news', engage= False)
+machine.start(override= True, work_subreddit= 'news', engage= True, subm_fetch_limit= None, intersection_min_divider= 3)
 
 
 print(machine._main_kwd_df.to_string())
@@ -26,4 +26,10 @@ print(machine._main_kwd_df.to_string())
 
 # machine.__test_functionality__()
 
+def get_datetime():
 
+    from datetime import datetime
+
+    x = str(datetime.now())
+
+    print(x)

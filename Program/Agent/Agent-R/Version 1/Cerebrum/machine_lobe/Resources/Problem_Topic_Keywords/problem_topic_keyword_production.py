@@ -1,18 +1,68 @@
 import indicoio
 import json
 import pandas
+from itertools import chain
+from pprint import pprint
+
 
 indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 
 
 
 
-with open('../topic_keywords.json', 'r') as fp:
-    set1 = json.load(fp)
+def write(path, link):
 
 
-series = pandas.Series(set1)
+    x = indicoio.keywords(link)
 
-series.drop(labels= "Leyla", inplace= True)
+    with open(path, 'w') as fp:
+        json.dump(x, fp)
 
-print(series)
+
+
+def read(path):
+
+    with open(path, 'r') as fp:
+
+        data = json.load(fp)
+
+    series = pandas.Series(data)
+
+
+    return series
+
+
+
+def read_write(path, link):
+
+
+    write(path, link)
+
+    read(path)
+
+
+def lower(x: str):
+
+    return x.lower()
+
+
+def main():
+
+
+    a = read("ptopic_keywords.json").to_dict()
+
+    normalized = { lower(key): a[key] for key in a}
+
+    with open("ptopic_keywords.json", 'w') as fp:
+
+        json.dump(normalized, fp, indent= 2)
+
+
+
+    # print(x)
+
+
+
+main()
+
+

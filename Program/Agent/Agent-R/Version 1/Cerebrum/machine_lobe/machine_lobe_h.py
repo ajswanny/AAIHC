@@ -52,6 +52,16 @@ class MachineLobe(Cerebrum):
     _main_kwd_df = pandas.DataFrame()
 
 
+    # The Submission collection limit.
+    subm_fetch_limit = 0
+
+    # The average Submission title size for the current working Submission collection: 'submission_objects'.
+    avg_subm_title_size = 0
+
+    # The divider for determination of minimum keyword intersection magnitude.
+    intersection_min_divider = 0
+
+
     # The tuple of sentences to be used for expression utterance.
     utterance_sentences = tuple(open("Resources/utterance_sentences_(manual).txt").read().splitlines())
 
@@ -137,7 +147,7 @@ class MachineLobe(Cerebrum):
         self.ptopic_kwds_bag = self.remove_stopwords(self.ptopic_kwds_bag)
 
 
-        # TODO: Formally define each element.
+        # TODO: Define metadata.
         # Declare the main operation DataFrame.
         self._main_kwd_df = pandas.DataFrame(
             columns= [
@@ -157,13 +167,13 @@ class MachineLobe(Cerebrum):
 
     def remove_stopwords(self, corpus: (list, tuple)):
         """
+        Returns the given corpus restricted of English stopwords.
 
         :param corpus:
         :return:
         """
 
         return [word for word in corpus if word not in self.stop_words]
-
 
 
 
@@ -289,7 +299,8 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyAttributeOutsideInit
-    def start(self, work_subreddit: str, engage: bool, override: bool= False):
+    def start(self, work_subreddit: str, engage: bool, intersection_min_divider: int, subm_fetch_limit: (int, None),
+              override: bool= False):
         """
         Begins the process of Work.
 
@@ -313,6 +324,14 @@ class MachineLobe(Cerebrum):
 
         # Define True condition for start menu run-state.
         self.start_menu_run = True
+
+
+        # Define specified intersection minimum determination divider.
+        self.intersection_min_divider = intersection_min_divider
+
+
+        # Define the Submission collection limit.
+        self.subm_fetch_limit = subm_fetch_limit
 
 
         # Quick formal process override.
@@ -411,7 +430,14 @@ class MachineLobe(Cerebrum):
         # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
         # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
         # '__init_operation_lobes__' method.
-        self.submission_objects = self._input_lobe.__collect_submissions__(return_objects= True, fetch_limit= 1)
+        self.submission_objects = self._input_lobe.__collect_submissions__(
+            return_objects= True,
+            fetch_limit= self.subm_fetch_limit
+        )
+
+
+        # Calculate average length of Submission title length.
+        self.avg_subm_title_size = self.__calc_avg_subm_title_size__(collection= self.submission_objects)
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
@@ -436,9 +462,29 @@ class MachineLobe(Cerebrum):
 
 
 
-    def out(self, x: tuple):
+    def __calc_avg_subm_title_size__(self, collection: (list, tuple)):
+        """
+        Calculates the average word count of the title for each Submission in 'submission_objects'.
 
-        self._output_lobe.submit_submission_expression(x[0], x[1])
+        :return:
+        """
+
+        # Define a sum for Submission title sizes.
+        x = 0
+
+
+        # Extract the title size for each Submission in 'submission_objects'.
+        for submission in collection:
+
+            tokens = submission.title.split()
+
+            num_tokens = len(tokens)
+
+            x += num_tokens
+
+
+        # Define the average Submission title size.
+        return int(x / len(self.submission_objects))
 
 
 
@@ -449,10 +495,20 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        def out(x: tuple):
+            """
+            Implementer of expression utterance operation.
+
+            :param x:
+            :return:
+            """
+
+            self._output_lobe.submit_submission_expression(actionable_submission= x[0], content= x[1])
+
 
         for index, row in self._main_kwd_df.iterrows():
 
-            if not self.__clearance__(self._main_kwd_df.loc[index]):
+            if self.__clearance__(self._main_kwd_df.loc[index]):
 
                 # Generate the utterance message.
                 utterance_message = self.__generate_utterance__(submission_data= self._main_kwd_df.loc[index])
@@ -470,7 +526,7 @@ class MachineLobe(Cerebrum):
 
                     # Create and deliver a message for the respective Submission.
                     # We provide the Submission object as the actionable Submission and the Submission metadata.
-                    self.out(operation_fields)
+                    out(operation_fields)
 
                 except praw.exceptions.APIException as E:
 
@@ -480,7 +536,7 @@ class MachineLobe(Cerebrum):
 
                 finally:
 
-                    self.out(operation_fields)
+                    out(operation_fields)
 
 
                 # Record the engagement time.
@@ -494,8 +550,7 @@ class MachineLobe(Cerebrum):
 
 
 
-    @staticmethod
-    def __clearance__(submission_data: pandas.Series):
+    def __clearance__(self, submission_data: pandas.Series):
         """
         Determines if the Agent is to engage in a Submission, observing the Submission metadata.
 
@@ -508,13 +563,13 @@ class MachineLobe(Cerebrum):
         clearance = False
 
 
-        # Define clearance condition.
-        # FIXME: Currently using a naive measure of success probability and an intersection size of
-        # FIXME: greater than 1. Must determine the final versions of this part of the algorithm.
-        if (submission_data.success_probability and submission_data.intersection_size) > 1:
+        # Define the minimum intersection size.
+        intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
 
-            print(submission_data.success_probability)
-            print(submission_data.intersection_size)
+
+        # Determine clearance status.
+        if submission_data.intersection_size >= intersection_min:
+
             clearance = True
 
 
