@@ -31,8 +31,10 @@ class MachineLobe(Cerebrum):
     # TODO: Declare all Class fields here.
 
     # Declare global boolean operation controllers.
-    engage = bool()                 # A boolean value to indicate if the Agent is to engage in utterance with Submissions.
-    start_menu_run = bool()         # A boolean value to indicate if the start menu is running.
+    engage = False                          # Indicates if the Agent is to engage in utterance with Submissions.
+    start_menu_run = False                  # Indicates if the start menu is running.
+    analyze_subm_articles = False        # Indicates whether the algorithm should consider a Submission's linked
+                                            #   article for keyword analysis.
 
 
     # TODO: Complete compilation of ptopic keywords.
@@ -48,6 +50,7 @@ class MachineLobe(Cerebrum):
     # The tuple containing English stop words.
     stop_words = tuple(open("Resources/stopwords.txt").read().splitlines())
 
+
     # The collection of completed keyword analysis for Reddit Submissions.
     _main_kwd_df = pandas.DataFrame()
 
@@ -58,19 +61,23 @@ class MachineLobe(Cerebrum):
     # The average Submission title size for the current working Submission collection: 'submission_objects'.
     avg_subm_title_size = 0
 
+    # The minimum keyword intersection magnitude.
+    intersection_min = 0
+
     # The divider for determination of minimum keyword intersection magnitude.
     intersection_min_divider = 0
 
 
     # The tuple of sentences to be used for expression utterance.
-    utterance_sentences = tuple(open("Resources/utterance_sentences_(manual).txt").read().splitlines())
+    utterance_sentences = tuple(open("Resources/Utterances/utterance_sentences_(manual).txt").read().splitlines())
 
 
     # The authentication for the Indico NLP API.
     indicoio.config.api_key = '43c624474f147b8b777a144807e7ca95'
 
 
-    def __init__(self, platform: str, reddit_params: tuple, task: str = "Keyword Analysis and Expression"):
+    def __init__(self, platform: str, reddit_params: tuple, main_df_archive_filepath: str, analyize_subm_links: bool,
+                 task: str = "Keyword Analysis and Expression"):
         """
 
         :param reddit_params:
@@ -98,6 +105,10 @@ class MachineLobe(Cerebrum):
             username= reddit_params[3],
             password= reddit_params[4]
         )
+
+
+        # Define location of the JSON file to archive '_main_kwd_df'.
+        self.FILEPATH_main_kwd_df = main_df_archive_filepath
 
 
         # Initialize dependencies for keyword analysis.
@@ -158,10 +169,6 @@ class MachineLobe(Cerebrum):
         )
 
 
-        # Define location of the JSON file to periodically store '_main_kwd_df'.
-        self.FILEPATH_main_kwd_df = "/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df.json"
-
-
         return self
 
 
@@ -177,6 +184,7 @@ class MachineLobe(Cerebrum):
 
 
 
+    # noinspection PyCompatibility
     def archive_main_dataframe(self):
         """
         Currently archives field: '_main_kwd_df'. Future development will see this method allow for the archival of
@@ -188,7 +196,9 @@ class MachineLobe(Cerebrum):
         """
 
         # Archive '_main_kwd_df'.
-        self._main_kwd_df.drop("submission_object", 1).to_json(path_or_buf = self.FILEPATH_main_kwd_df)
+        x: pandas.DataFrame = self._main_kwd_df.drop("submission_object", 1)
+
+        x.to_json(path_or_buf = self.FILEPATH_main_kwd_df)
 
 
         return 0
@@ -254,38 +264,6 @@ class MachineLobe(Cerebrum):
 
 
 
-    def probability(self, method: str, values: tuple, normalize: bool= True):
-        """
-        Calculates the probability of success, judging this measure with respect to the intersection
-        of keywords of the base keyword set and a given Submission title's keywords.
-
-        At the moment, this measure is obtained simply and naively from the length of the intersection
-        of the base keyword set and a given Submission title's keyword set.
-
-        # TODO: Substantial optimization.
-
-        :return:
-        """
-
-        if method == "keyword":
-
-            # Initialize a probability measure; this tuple index refers to the sum of the amount of values
-            # in the intersection list. That is, the amount of keywords that intersected.
-            success_probability = values[3]
-
-
-            if normalize:
-
-                # Return a probability measure normalized to a range of [0, 1].
-                # TODO: Update maximum. This will be the amount of keywords we use for the problem topic.
-                return self.normalize(success_probability, minimum= 0, maximum= 800)
-
-            else:
-
-                return success_probability
-
-
-
     def __test_functionality__(self):
         """
 
@@ -299,8 +277,9 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyAttributeOutsideInit
-    def start(self, work_subreddit: str, engage: bool, intersection_min_divider: int, subm_fetch_limit: (int, None),
-              override: bool= False):
+    def start(self, work_subreddit: str, engage: bool, intersection_min_divider: int,
+              subm_fetch_limit: (int, None), analyze_subm_articles: bool, override: bool= False,
+              analyze_subm_titles: bool= True):
         """
         Begins the process of Work.
 
@@ -317,21 +296,8 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        # Define True condition for 'engage' if desired.
-        if engage:
-
-            self.engage = True
-
-        # Define True condition for start menu run-state.
-        self.start_menu_run = True
-
-
-        # Define specified intersection minimum determination divider.
-        self.intersection_min_divider = intersection_min_divider
-
-
-        # Define the Submission collection limit.
-        self.subm_fetch_limit = subm_fetch_limit
+        # Define all necessary fields.
+        self.set__start__values(engage, intersection_min_divider, subm_fetch_limit, analyze_subm_articles)
 
 
         # Quick formal process override.
@@ -371,6 +337,39 @@ class MachineLobe(Cerebrum):
                 # Exit program.
                 self.start_menu_run = False
                 break
+
+
+        return 0
+
+
+
+    def set__start__values(self, engage: bool, intersection_min_divider: int,
+                           subm_fetch_limit: (int, None), analyze_subm_articles: bool):
+        """
+        Trivially defines the values for the '__start__' method.
+
+        :return:
+        """
+
+        # Define True condition for 'engage' if desired.
+        if engage:
+            self.engage = True
+
+
+        # Define True condition for start menu run-state.
+        self.start_menu_run = True
+
+
+        # Define specified intersection minimum determination divider.
+        self.intersection_min_divider = intersection_min_divider
+
+
+        # Define the Submission collection limit.
+        self.subm_fetch_limit = subm_fetch_limit
+
+
+        # Define the boolean controller for analysis of Submission article links.
+        self.analyze_subm_articles = analyze_subm_articles
 
 
         return 0
@@ -495,6 +494,10 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        # Define the minimum intersection size.
+        self.intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
+
+
         def out(x: tuple):
             """
             Implementer of expression utterance operation.
@@ -563,12 +566,8 @@ class MachineLobe(Cerebrum):
         clearance = False
 
 
-        # Define the minimum intersection size.
-        intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
-
-
         # Determine clearance status.
-        if submission_data.intersection_size >= intersection_min:
+        if submission_data.intersection_size >= self.intersection_min:
 
             clearance = True
 
@@ -607,6 +606,10 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+        if self.analyze_subm_articles:
+
+
+
         # Create temporary container for keyword analyses.
         keyword_analyses = []
 
@@ -638,6 +641,38 @@ class MachineLobe(Cerebrum):
         """
 
         return self.reddit_instance.submission(id= submission_id)
+
+
+
+    def probability(self, method: str, values: tuple, normalize: bool= True):
+        """
+        Calculates the probability of success, judging this measure with respect to the intersection
+        of keywords of the base keyword set and a given Submission title's keywords.
+
+        At the moment, this measure is obtained simply and naively from the length of the intersection
+        of the base keyword set and a given Submission title's keyword set.
+
+        # TODO: Substantial optimization.
+
+        :return:
+        """
+
+        if method == "keyword":
+
+            # Initialize a probability measure; this tuple index refers to the sum of the amount of values
+            # in the intersection list. That is, the amount of keywords that intersected.
+            success_probability = values[3]
+
+
+            if normalize:
+
+                # Return a probability measure normalized to a range of [0, 1].
+                # The determined max value is obtained from the amount of ptopic keywords.
+                return self.normalize(success_probability, minimum= 0, maximum= 79)
+
+            else:
+
+                return success_probability
 
 
 
@@ -673,9 +708,12 @@ class MachineLobe(Cerebrum):
         document_keywords = tuple(document_keyword_analysis.keys())
 
 
+        # Define a collection of the words in a Submission title.
+        document_tokens = tuple(map(lambda x: x.lower(), submission.title.split()))
+
 
         # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.ptopic_kwds_bag, document_keywords)
+        intersection = self.intersect(self.ptopic_kwds_bag, document_tokens)
 
 
         # Initialize the keyword intersection count.

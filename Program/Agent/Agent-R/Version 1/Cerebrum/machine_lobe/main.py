@@ -1,30 +1,34 @@
 from Cerebrum.machine_lobe.machine_lobe_h import MachineLobe
 from pprint import pprint
 import pandas
+import json
+
+def process():
 
 
-
-# Define the credentials for the Reddit object.
-reddit_parameters = ("YKsn6_Q_yaP46A",
-                     "eygwAD8rMNEhFet0vLQmBqVPxbE",
-                     "default_for_research",
-                     "agent000001",
-                     "S0awesome")
-
-
-# Define the MachineLobe with the desired Reddit credentials.
-machine = MachineLobe(platform= "Reddit", reddit_params= reddit_parameters)
+    # Define the credentials for the Reddit object.
+    reddit_parameters = ("YKsn6_Q_yaP46A",
+                         "eygwAD8rMNEhFet0vLQmBqVPxbE",
+                         "default_for_research",
+                         "agent000001",
+                         "S0awesome")
 
 
-# Initialize the process.
-machine.start(override= True, work_subreddit= 'news', engage= True, subm_fetch_limit= None, intersection_min_divider= 3)
+    # Define the MachineLobe with the desired Reddit credentials.
+    machine = MachineLobe(
+        platform= "Reddit",
+        reddit_params= reddit_parameters,
+        analyize_subm_links= False,
+        main_df_archive_filepath= "Resources/_main_kwd_df/_r-worldnews_/2018-02-18_00-40/_main_kwd_df.json"
+    )
 
 
-print(machine._main_kwd_df.to_string())
+    # Initialize the process.
+    machine.start(override= True, work_subreddit= 'worldnews', engage= False, subm_fetch_limit= None,
+                  analyze_subm_articles= False, intersection_min_divider= 3)
 
-# machine._main_kwd_df.to_json("/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/Program_Data_Fields/_main_kwd_df.json")
+    print(machine._main_kwd_df.to_string())
 
-# machine.__test_functionality__()
 
 def get_datetime():
 
@@ -33,3 +37,21 @@ def get_datetime():
     x = str(datetime.now())
 
     print(x)
+
+
+
+def main():
+
+    # with open("Resources/_main_kwd_df/_r-worldnews_/2018-02-18_00-40/_main_kwd_df.json", "r") as fp:
+    #
+    #     x = json.load(fp)
+
+    x = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-worldnews_/2018-02-18_00-40/_main_kwd_df.json")
+
+    print(x.head().to_string())
+
+# process()
+
+main()
+
+# get_datetime()
