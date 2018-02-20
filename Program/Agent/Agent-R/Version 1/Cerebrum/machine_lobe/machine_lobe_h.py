@@ -33,8 +33,10 @@ class MachineLobe(Cerebrum):
     # Declare global boolean operation controllers.
     engage = False                          # Indicates if the Agent is to engage in utterance with Submissions.
     start_menu_run = False                  # Indicates if the start menu is running.
-    analyze_subm_articles = False        # Indicates whether the algorithm should consider a Submission's linked
+    analyze_subm_articles = False           # Indicates whether the algorithm should consider a Submission's linked
                                             #   article for keyword analysis.
+    analyze_subm_titles = False             # Indicates if the algorithm is to consider a Submission's title for keyword
+                                            #   analysis.
 
 
     # TODO: Complete compilation of ptopic keywords.
@@ -297,7 +299,8 @@ class MachineLobe(Cerebrum):
         """
 
         # Define all necessary fields.
-        self.set__start__values(engage, intersection_min_divider, subm_fetch_limit, analyze_subm_articles)
+        self.set__start__values(engage, intersection_min_divider, subm_fetch_limit, analyze_subm_articles,
+                                analyze_subm_titles)
 
 
         # Quick formal process override.
@@ -344,7 +347,8 @@ class MachineLobe(Cerebrum):
 
 
     def set__start__values(self, engage: bool, intersection_min_divider: int,
-                           subm_fetch_limit: (int, None), analyze_subm_articles: bool):
+                           subm_fetch_limit: (int, None), analyze_subm_articles: bool,
+                           analyze_subm_titles: bool):
         """
         Trivially defines the values for the '__start__' method.
 
@@ -366,6 +370,10 @@ class MachineLobe(Cerebrum):
 
         # Define the Submission collection limit.
         self.subm_fetch_limit = subm_fetch_limit
+
+
+        # Define the boolean controller for analysis of Submission titles.
+        self.analyze_subm_titles = analyze_subm_titles
 
 
         # Define the boolean controller for analysis of Submission article links.
@@ -461,32 +469,6 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __calc_avg_subm_title_size__(self, collection: (list, tuple)):
-        """
-        Calculates the average word count of the title for each Submission in 'submission_objects'.
-
-        :return:
-        """
-
-        # Define a sum for Submission title sizes.
-        x = 0
-
-
-        # Extract the title size for each Submission in 'submission_objects'.
-        for submission in collection:
-
-            tokens = submission.title.split()
-
-            num_tokens = len(tokens)
-
-            x += num_tokens
-
-
-        # Define the average Submission title size.
-        return int(x / len(self.submission_objects))
-
-
-
     def __process_submission_engages__(self):
         """
         Conducts the engagement actions of the Agent.
@@ -576,6 +558,32 @@ class MachineLobe(Cerebrum):
 
 
 
+    def __calc_avg_subm_title_size__(self, collection: (list, tuple)):
+        """
+        Calculates the average word count of the title for each Submission in 'submission_objects'.
+
+        :return:
+        """
+
+        # Define a sum for Submission title sizes.
+        x = 0
+
+
+        # Extract the title size for each Submission in 'submission_objects'.
+        for submission in collection:
+
+            tokens = submission.title.split()
+
+            num_tokens = len(tokens)
+
+            x += num_tokens
+
+
+        # Define the average Submission title size.
+        return int(x / len(self.submission_objects))
+
+
+
     def __generate_utterance__(self, submission_data: pandas.Series):
         """
         Generates a message to be submitted to a Reddit Submission.
@@ -606,29 +614,91 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        if self.analyze_subm_articles:
+        if self.analyze_subm_titles:
+
+            # Create temporary container for keyword analyses.
+            keyword_analyses = []
 
 
+            # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
+            for submission in self.submission_objects:
 
-        # Create temporary container for keyword analyses.
-        keyword_analyses = []
-
-
-        # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
-        for submission in self.submission_objects:
-
-            keyword_analyses.append(self.__analyze_subm_kwds__(submission))
+                keyword_analyses.append(self.__analyze_subm_kwds__(submission))
 
 
-        # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
-        keyword_analyses = pandas.DataFrame(keyword_analyses)
+            # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
+            keyword_analyses = pandas.DataFrame(keyword_analyses)
 
 
-        # Update '_main_kwd_df'.
-        self._main_kwd_df = pandas.concat([self._main_kwd_df, keyword_analyses])
+            # Update '_main_kwd_df'.
+            self._main_kwd_df = pandas.concat([self._main_kwd_df, keyword_analyses])
 
 
         return 0
+
+
+
+    # noinspection PyDictCreation
+    def __analyze_subm_kwds__(self, submission: reddit.Submission):
+        """
+        'Analyze Submission Keywords'
+
+        Performs keyword intersection analysis for the topic keyword collection and a given Submission's keywords.
+
+        :return:
+        """
+
+        # TODO: Implement reliable collection of keywords.
+        # TODO: Select API.
+
+
+        # TODO: Create normalization function for keyword collections.
+
+        # Define the keywords for the given Submission title.
+        # NOTE: CURRENTLY USING JUST THE KEYWORDS GIVEN; NOT INCLUDING THEIR LIKELY RELEVANCE.
+        document_keyword_analysis = indicoio.keywords(submission.title)
+        document_keywords = tuple(document_keyword_analysis.keys())
+
+        # Define a collection of the words in a Submission title.
+        document_tokens = tuple(map(lambda x: x.lower(), submission.title.split()))
+
+        # Remove English stopwords from the Submission title word content set.
+        document_tokens = self.remove_stopwords(corpus= document_tokens)
+
+        # Define the intersection of the topic keywords bag and the Submission's title content.
+        # FIXME Currently using the entire set of words from Submission titles -- this is naturally what we as people do
+        # FIXME when reading documents to identify relevance to a certain topic.
+        intersection = self.intersect(self.ptopic_kwds_bag, document_tokens)
+
+        if self.analyze_subm_articles:
+
+            document_article_analysis = indicoio.keywords(submission.shortlink)
+            document_article_kwds = 7
+
+        # Initialize the keyword intersection count.
+        keywords_intersections_count = len(intersection)
+
+        # Define a structure to contain all measures relevant to analysis.
+        analysis = {
+            "submission_id": submission.id,
+            "submission_title": submission.title,
+            "keywords_intersection": intersection,
+            "intersection_size": float(keywords_intersections_count),
+            "document_kwds": document_keywords
+        }
+
+        # Define a probability measure of success and append this to the 'analysis' dictionary.
+        # This figure is used to determine whether or not the Agent will submit a textual expression
+        # to a Reddit Submission.
+        # TODO: This measure is to be optimized in the future.
+        analysis["success_probability"] = self.probability(method="keyword", values=tuple(analysis.values()))
+
+        # Append Submission object to the analysis.
+        # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
+        # overflow error.
+        analysis["submission_object"] = submission
+
+        return analysis
 
 
 
@@ -673,77 +743,6 @@ class MachineLobe(Cerebrum):
             else:
 
                 return success_probability
-
-
-
-    # noinspection PyDictCreation
-    def __analyze_subm_kwds__(self, submission: reddit.Submission):
-        """
-        'Analyze Submission Keywords'
-
-        Performs keyword intersection analysis for the topic keyword collection and a given Submission's keywords.
-
-        :return:
-        """
-
-        """
-        Although we do not know which specific API to use for keyword analysis, we know that the 
-        actionable data provided will be a sequence of identified keywords. Thus, a placer list is defined
-        for temporary use.
-        """
-
-        # TODO: Implement reliable collection of keywords.
-        # TODO: Select API.
-
-        # TODO: Determine if we want to make use of the relevance to document of keywords provided by the Indico NLP API.
-        # TODO: Determine if we want to implement use of the linked article.
-        # TODO: Determine if we want to incorporate the use of "KEYWORD PHRASES," not just keywords.
-
-        # TODO: Create normalization function for keyword collections.
-
-
-        # Define the keywords for the given Submission title.
-        # NOTE: CURRENTLY USING JUST THE KEYWORDS GIVEN; NOT INCLUDING THEIR LIKELY RELEVANCE.
-        document_keyword_analysis = indicoio.keywords(submission.title)
-        document_keywords = tuple(document_keyword_analysis.keys())
-
-
-        # Define a collection of the words in a Submission title.
-        document_tokens = tuple(map(lambda x: x.lower(), submission.title.split()))
-
-
-        # Define the intersection of the topic keywords bag and the Submission's keywords.
-        intersection = self.intersect(self.ptopic_kwds_bag, document_tokens)
-
-
-        # Initialize the keyword intersection count.
-        keywords_intersections_count = len(intersection)
-
-
-        # Define a structure to contain all measures relevant to analysis.
-        analysis = {
-            "submission_id": submission.id,
-            "submission_title": submission.title,
-            "keywords_intersection": intersection,
-            "intersection_size": float(keywords_intersections_count),
-            "document_kwds": document_keywords
-        }
-
-
-        # Define a probability measure of success and append this to the 'analysis' dictionary.
-        # This figure is used to determine whether or not the Agent will submit a textual expression
-        # to a Reddit Submission.
-        # TODO: This measure is to be optimized in the future.
-        analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
-
-
-        # Append Submission object to the analysis.
-        # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
-        # overflow error.
-        analysis["submission_object"] = submission
-
-
-        return analysis
 
 
 

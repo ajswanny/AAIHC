@@ -24,8 +24,8 @@ def process():
 
 
     # Initialize the process.
-    machine.start(override= True, work_subreddit= 'worldnews', engage= False, subm_fetch_limit= None,
-                  analyze_subm_articles= False, intersection_min_divider= 3)
+    machine.start(override= True, work_subreddit= 'worldnews', engage= False, subm_fetch_limit= 1,
+                  analyze_subm_articles= True, intersection_min_divider= 3)
 
     print(machine._main_kwd_df.to_string())
 
@@ -50,8 +50,8 @@ def main():
 
     print(x.head().to_string())
 
-# process()
-
-main()
+process()
+ 
+# main()
 
 # get_datetime()
