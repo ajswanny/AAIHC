@@ -71,5 +71,16 @@ def f(x):
     elif x == 3: get_datetime()
 
 
+f(2)
 
-f(1)
+
+def read_rpolitics_example_one():
+
+
+    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-politics_/2018-02-20_17-20/_main_kwd_df.json")
+
+    print((x.loc[x.intersection_size > 1]).to_string())
+
+
+
+# read_rpolitics_example_one()

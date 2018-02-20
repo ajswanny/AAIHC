@@ -622,44 +622,75 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
-        if self.analyze_subm_titles:
 
-            # Create temporary container for keyword analyses.
-            keyword_analyses = []
+        # Create temporary container for keyword analyses.
+        keyword_analyses = []
 
 
-            # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
-            for submission in self.submission_objects:
+        # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
+        for submission in self.submission_objects:
 
+            if self.analyze_subm_titles:
+
+                # Perform Submission title keyword analysis.
                 keyword_analyses.append(self.__analyze_subm_title_kwds__(submission))
 
+            if self.analyze_subm_articles:
 
-            # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
-            keyword_analyses = pandas.DataFrame(keyword_analyses)
+                # Perform Submission AURL keyword analysis.
+                keyword_analyses.append(self.__analyze_subm_aurl_kwds__(submission))
 
 
-            # Update '_main_kwd_df'.
-            self._main_kwd_df = pandas.concat([self._main_kwd_df, keyword_analyses])
+        # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
+        keyword_analyses = pandas.DataFrame(keyword_analyses)
+
+
+        # Update '_main_kwd_df'.
+        self._main_kwd_df = pandas.concat([self._main_kwd_df, keyword_analyses])
 
 
         return 0
 
 
 
-    def __analyze_subm_url_kwds__(self, submission: reddit.Submission):
+    def __analyze_subm_aurl_kwds__(self, submission: reddit.Submission):
         """
         Performs keyword intersection analysis on the ptopic keywords and a Submission's linked article accessed by an
         attached URL.
+
+        This attached article for a Submission is referenced as "AURL".
 
         :return:
         """
 
         # Define alias to linked URL of the provided Submission.
+        subm_url = submission.url
 
 
+        # Generate keyword analysis for the AURL.
+        subm_aurl_kwd_analysis = indicoio.keywords(subm_url)
+
+        # Retrieve the exclusively the keywords identified for the AURL.
+        subm_aurl_kwds = tuple(subm_aurl_kwd_analysis.keys())
 
 
-        return 0
+        # Define the intersection of the ptopic keywords and the AURL.
+        subm_aurl_intxn = self.intersect(self.ptopic_kwds_bag, subm_aurl_kwds)
+
+
+        # Initialize the keyword intersection count.
+        subm_aurl_intxn_count = len(subm_aurl_intxn)
+
+
+        # Define a structure to contain all measures relevant to analysis.
+        analysis = {
+            "aurl_kwd_intxn": subm_aurl_intxn,
+            "aurl_kwd_intxn_size": float(subm_aurl_intxn_count),
+            "subm_aurl_kwds": subm_aurl_kwds
+        }
+
+
+        return analysis
 
 
 
@@ -715,7 +746,7 @@ class MachineLobe(Cerebrum):
         # This figure is used to determine whether or not the Agent will submit a textual expression
         # to a Reddit Submission.
         # TODO: This measure is to be optimized in the future.
-        analysis["success_probability"] = self.probability(method="keyword", values=tuple(analysis.values()))
+        analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
 
 
         # Append Submission object to the analysis.

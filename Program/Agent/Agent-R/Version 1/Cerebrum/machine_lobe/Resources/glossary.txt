@@ -19,3 +19,4 @@ SUBM: Submission (Usually in reference to Reddit Submissions)
 NLP: Natural Language Processing
 API: Application Programming Interface
 HLTE: High-Level Textual Expression
+INTXM: Intersection
