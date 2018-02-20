@@ -164,7 +164,7 @@ class MachineLobe(Cerebrum):
         # Declare the main operation DataFrame.
         self._main_kwd_df = pandas.DataFrame(
             columns= [
-                'document_kwds', 'intersection_size', 'keywords_intersection',
+                'subm_title_keywords', 'intersection_size', 'keywords_intersection',
                 'submission_id', 'submission_object', 'submission_title',
                 'success_probability', 'utterance_content', 'engagement_time'
             ]
@@ -450,19 +450,25 @@ class MachineLobe(Cerebrum):
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
         self.__process_keyword_analysis__()
 
+        try:
 
-        if self.engage:
+            if self.engage:
 
-            # Perform engagement, determining for every Submission if it should be engaged and following through if so.
-            self.__process_submission_engages__()
-
-
-            # Redefine 'engage' boolean controller.
-            self.engage = False
+                # Perform engagement, determining for every Submission if it should be engaged and following through if so.
+                self.__process_submission_engages__()
 
 
-        # Archive '_main_kwd_df'.
-        self.archive_main_dataframe()
+                # Redefine 'engage' boolean controller.
+                self.engage = False
+
+        except praw.exceptions.APIException as E:
+
+            print("Encountered: ", E.message)
+
+        finally:
+
+            # Archive '_main_kwd_df'.
+            self.archive_main_dataframe()
 
 
         return 0
@@ -477,7 +483,8 @@ class MachineLobe(Cerebrum):
         """
 
         # Define the minimum intersection size.
-        self.intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
+        # self.intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
+        self.intersection_min = 3
 
 
         def out(x: tuple):
@@ -548,7 +555,8 @@ class MachineLobe(Cerebrum):
         clearance = False
 
 
-        # Determine clearance status.
+        # Determine clearance status. Clearance evaluates as true if the magnitude of the intersection is greater than
+        # or equal to 'intersection_min'.
         if submission_data.intersection_size >= self.intersection_min:
 
             clearance = True
@@ -623,7 +631,7 @@ class MachineLobe(Cerebrum):
             # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
             for submission in self.submission_objects:
 
-                keyword_analyses.append(self.__analyze_subm_kwds__(submission))
+                keyword_analyses.append(self.__analyze_subm_title_kwds__(submission))
 
 
             # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
@@ -638,54 +646,70 @@ class MachineLobe(Cerebrum):
 
 
 
-    # noinspection PyDictCreation
-    def __analyze_subm_kwds__(self, submission: reddit.Submission):
+    def __analyze_subm_url_kwds__(self, submission: reddit.Submission):
         """
-        'Analyze Submission Keywords'
-
-        Performs keyword intersection analysis for the topic keyword collection and a given Submission's keywords.
+        Performs keyword intersection analysis on the ptopic keywords and a Submission's linked article accessed by an
+        attached URL.
 
         :return:
         """
 
-        # TODO: Implement reliable collection of keywords.
-        # TODO: Select API.
+        # Define alias to linked URL of the provided Submission.
 
 
-        # TODO: Create normalization function for keyword collections.
+
+
+        return 0
+
+
+
+    # noinspection PyDictCreation
+    def __analyze_subm_title_kwds__(self, submission: reddit.Submission):
+        """
+        'Analyze Submission Keywords'
+
+        Performs keyword intersection analysis for the topic keyword collection and a given Submission's title.
+
+        :return:
+        """
+
 
         # Define the keywords for the given Submission title.
         # NOTE: CURRENTLY USING JUST THE KEYWORDS GIVEN; NOT INCLUDING THEIR LIKELY RELEVANCE.
-        document_keyword_analysis = indicoio.keywords(submission.title)
-        document_keywords = tuple(document_keyword_analysis.keys())
+        # TODO: Officially determine if we are to use a Submission's title's keywords, or the entire content of a
+        # TODO  Submission title.
+        #
+        # subm_title_keyword_analysis = indicoio.keywords(submission.title)
+        # subm_title_keywords = tuple(subm_title_keyword_analysis.keys())
+        """ PLACER """
+        subm_title_keywords = 0
+
 
         # Define a collection of the words in a Submission title.
-        document_tokens = tuple(map(lambda x: x.lower(), submission.title.split()))
+        subm_title_tokens = tuple(map(lambda x: x.lower(), submission.title.split()))
 
         # Remove English stopwords from the Submission title word content set.
-        document_tokens = self.remove_stopwords(corpus= document_tokens)
+        subm_title_tokens = self.remove_stopwords(corpus= subm_title_tokens)
 
         # Define the intersection of the topic keywords bag and the Submission's title content.
         # FIXME Currently using the entire set of words from Submission titles -- this is naturally what we as people do
         # FIXME when reading documents to identify relevance to a certain topic.
-        intersection = self.intersect(self.ptopic_kwds_bag, document_tokens)
+        subm_title_intersection = self.intersect(self.ptopic_kwds_bag, subm_title_tokens)
 
-        if self.analyze_subm_articles:
-
-            document_article_analysis = indicoio.keywords(submission.shortlink)
-            document_article_kwds = 7
 
         # Initialize the keyword intersection count.
-        keywords_intersections_count = len(intersection)
+        keywords_intersections_count = len(subm_title_intersection)
+
 
         # Define a structure to contain all measures relevant to analysis.
         analysis = {
             "submission_id": submission.id,
             "submission_title": submission.title,
-            "keywords_intersection": intersection,
+            "keywords_intersection": subm_title_intersection,
             "intersection_size": float(keywords_intersections_count),
-            "document_kwds": document_keywords
+            "subm_title_kwds": subm_title_keywords
         }
+
 
         # Define a probability measure of success and append this to the 'analysis' dictionary.
         # This figure is used to determine whether or not the Agent will submit a textual expression
@@ -693,10 +717,12 @@ class MachineLobe(Cerebrum):
         # TODO: This measure is to be optimized in the future.
         analysis["success_probability"] = self.probability(method="keyword", values=tuple(analysis.values()))
 
+
         # Append Submission object to the analysis.
         # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
         # overflow error.
         analysis["submission_object"] = submission
+
 
         return analysis
 
