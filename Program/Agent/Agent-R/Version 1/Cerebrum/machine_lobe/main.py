@@ -24,10 +24,14 @@ def process():
 
 
     # Initialize the process.
-    machine.start(override= True, work_subreddit= 'politics', engage= False, subm_fetch_limit= 100,
-                  analyze_subm_articles= True, intersection_min_divider= 3, analyze_subm_relevance= True)
+    # machine.start(override= True, work_subreddit= 'politics', engage= False, subm_fetch_limit= 1,
+    #               analyze_subm_articles= True, intersection_min_divider= 3, analyze_subm_relevance= False)
+
+    machine.__stream_process__()
 
     print(machine._main_kwd_df.to_string())
+
+    print(machine._main_kwd_df.info())
 
 
 def get_datetime():

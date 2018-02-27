@@ -1,0 +1,3 @@
+class SubmissionAnalysisError(Exception):
+
+    pass

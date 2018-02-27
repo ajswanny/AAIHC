@@ -8,10 +8,11 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 from Cerebrum.output_lobe.output_lobe_h import OutputLobe
+from r_submission_h import RSubmission
+from Excpetions import SubmissionAnalysisError
 
-from datetime import datetime
+import _pickle as pickle
 import indicoio
-from indicoio.utils import errors as indicoio_errors
 import json
 import pandas
 from pprint import pprint
@@ -20,6 +21,8 @@ import praw.exceptions
 import praw.models as reddit
 import random
 import time
+from datetime import datetime
+from indicoio.utils import errors as indicoio_errors
 
 
 
@@ -714,7 +717,7 @@ class MachineLobe(Cerebrum):
 
         # Generate a relevance measure.
         relevance_analysis = indicoio.relevance(
-            subm_url,
+            [submission.title, subm_url],
             [
                 "Puerto Rican Humanitarian Crisis",
                 "Humanitarian Crisis",
@@ -776,7 +779,7 @@ class MachineLobe(Cerebrum):
 
 
     # noinspection PyDictCreation
-    def __analyze_subm_title_kwds__(self, submission: reddit.Submission):
+    def __analyze_subm_title_kwds__(self, submission: reddit.Submission, return_subm_obj: bool = True):
         """
         'Analyze Submission Keywords'
 
@@ -806,20 +809,20 @@ class MachineLobe(Cerebrum):
         # Define the intersection of the topic keywords bag and the Submission's title content.
         # FIXME Currently using the entire set of words from Submission titles -- this is naturally what we as people do
         # FIXME when reading documents to identify relevance to a certain topic.
-        subm_title_intersection = self.intersect(self.ptopic_kwds_bag, subm_title_tokens)
+        title_intxn = self.intersect(self.ptopic_kwds_bag, subm_title_tokens)
 
 
         # Initialize the keyword intersection count.
-        keywords_intersections_count = len(subm_title_intersection)
+        keywords_intersections_count = len(title_intxn)
 
 
         # Define a structure to contain all measures relevant to analysis.
         analysis = {
             "submission_id": submission.id,
             "submission_title": submission.title,
-            "keywords_intersection": subm_title_intersection,
-            "intersection_size": float(keywords_intersections_count),
-            "subm_title_kwds": subm_title_keywords
+            "title_intxn": title_intxn,
+            "title_intxn_size": float(keywords_intersections_count),
+            "title_kwds": subm_title_keywords
         }
 
 
@@ -830,10 +833,13 @@ class MachineLobe(Cerebrum):
         analysis["success_probability"] = self.probability(method= "keyword", values= tuple(analysis.values()))
 
 
-        # Append Submission object to the analysis.
-        # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
-        # overflow error.
-        analysis["submission_object"] = submission
+
+        if return_subm_obj:
+
+            # Append Submission object to the analysis.
+            # NOTE: Attempting to serialize the main DataFrame with this field as a member will cause an
+            # overflow error.
+            analysis["submission_object"] = submission
 
 
         return analysis
@@ -883,6 +889,80 @@ class MachineLobe(Cerebrum):
                 return success_probability
 
 
+    def __set_stream_process_values__(self):
+        """
+
+        :return:
+        """
+
+        ####################################
+
+
+        return 0
+
+
+
+    def __analyze_submission__(
+            self, submission: reddit.Submission, analyze_subm_title_kwds: bool,
+            analyze_subm_article_kwds: bool, analyze_subm_relevance: bool
+    ):
+        """
+        Performs Keyword and Relevance analysis for a single Submission.
+
+        :return:
+        """
+
+
+        # Create temporary container for keyword analyses.
+        keyword_analyses = []
+
+
+        # Define alias to Indico API scraping error.
+        indico_scraping_error = indicoio_errors.IndicoError
+
+
+        # Define container for Submission title and AURL analyses.
+        analysis = {}
+
+
+        # Update 'analysis' with Submission metadata.
+        submission.comments.replace_more(limit= 0)
+
+        analysis["comment_amount"] = len(submission.comments.list())
+        analysis["subm_title"] = submission.title
+
+
+        if analyze_subm_title_kwds:
+
+            # Perform Submission title keyword analysis.
+            analysis.update(self.__analyze_subm_title_kwds__(submission))
+
+        if analyze_subm_article_kwds:
+
+            try:
+
+                # Perform Submission AURL keyword analysis.
+                analysis.update(self.__analyze_subm_aurl_kwds__(submission))
+
+            except indico_scraping_error:
+
+                raise SubmissionAnalysisError
+
+        if analyze_subm_relevance:
+
+            try:
+
+                # Perform relevance measurement.
+                analysis["subm_relevance_scores"] = self.__analyze_subm_relevance__(submission)
+
+            except indico_scraping_error:
+
+                raise SubmissionAnalysisError
+
+
+        return tuple(analysis.values())
+
+
 
     def __stream_process__(self, work_subreddit: str= "news"):
         """
@@ -890,55 +970,51 @@ class MachineLobe(Cerebrum):
         :return:
         """
 
+
+        # Define iterator for Stream loop.
+        stream_loop_i = 0
+
+
         # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
         # Create OutputLobe object to handle expression utterance.
-        self.__init_operation_lobes__(work_subreddit=work_subreddit)
-
-        # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
-        # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
-        # '__init_operation_lobes__' method.
-        self.submission_objects = self._input_lobe.__collect_submissions__(
-            return_objects=True,
-            fetch_limit=self.subm_fetch_limit
-        )
-
-        # Calculate average length of Submission titles.
-        self.avg_subm_title_size = self.__calc_avg_subm_title_size__(collection=self.submission_objects)
-
-        # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
-        self.__process_subm_analysis__()
-
-        try:
-
-            if self.engage:
-                # Perform engagement, determining for every Submission if it should be engaged and following through if so.
-                self.__process_submission_engages__()
-
-                # Redefine 'engage' boolean controller.
-                self.engage = False
-
-        except praw.exceptions.APIException as E:
-
-            print("Encountered: ", E.message)
-
-        finally:
-
-            # Archive '_main_kwd_df'.
-            self.archive_main_dataframe()
+        self.__init_operation_lobes__(work_subreddit= work_subreddit)
 
 
+        # Define a container for Submission objects.
+        self.RedditSubmission_objects = pandas.DataFrame()
 
 
+        #
+        for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after= 0):
 
 
+            # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
+            preliminary_subm_data = self.__analyze_submission__(
+                submission,
+                analyze_subm_title_kwds= True,
+                analyze_subm_article_kwds= True,
+                analyze_subm_relevance= True
+            )
+
+            # Create RSubmission object with preliminary Submission metadata and analyses.
+            R_Submission = RSubmission(fields= preliminary_subm_data)
 
 
-        for submission in self.reddit_instance.subreddit("news").stream:
+            # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
+            self.__process_subm_analysis__()
 
+            try:
 
+                if self.engage:
+                    # Perform engagement, determining for every Submission if it should be engaged and following through if so.
+                    self.__process_submission_engages__()
 
-            pass
+                    # Redefine 'engage' boolean controller.
+                    self.engage = False
 
+            except praw.exceptions.APIException as E:
+
+                print("Encountered comment creation limit...: ", E.message)
 
 
 
