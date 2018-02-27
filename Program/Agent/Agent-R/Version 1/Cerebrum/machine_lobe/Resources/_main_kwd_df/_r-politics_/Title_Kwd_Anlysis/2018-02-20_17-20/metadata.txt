@@ -1,0 +1,1 @@
+Intersection Minimum Divider: OVERRIDE: Manually defined the intersection minimum to be 3.

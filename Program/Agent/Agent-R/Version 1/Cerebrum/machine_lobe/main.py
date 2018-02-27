@@ -19,13 +19,13 @@ def process():
         platform= "Reddit",
         reddit_params= reddit_parameters,
         analyize_subm_links= False,
-        main_df_archive_filepath= "Resources/_main_kwd_df/_r-politics_/2018-02-20_17-20/_main_kwd_df.json"
+        main_df_archive_filepath= "Resources/_main_kwd_df/_r-politics_/Title_Kwd_Anlysis/2018-02-21_10-09/v2/_main_kwd_df.json"
     )
 
 
     # Initialize the process.
-    machine.start(override= True, work_subreddit= 'news', engage= True, subm_fetch_limit= None,
-                  analyze_subm_articles= True, intersection_min_divider= 3)
+    machine.start(override= True, work_subreddit= 'politics', engage= False, subm_fetch_limit= 100,
+                  analyze_subm_articles= True, intersection_min_divider= 3, analyze_subm_relevance= True)
 
     print(machine._main_kwd_df.to_string())
 
@@ -52,13 +52,19 @@ def main():
     # r worldnews 1:
     #   Resources/_main_kwd_df/_r-worldnews_/2018-02-18_00-40/_main_kwd_df.json
 
-    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-news_/2018-02-20_16-38/_main_kwd_df.json")
+    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-politics_/Title_Kwd_Anlysis/2018-02-21_10-09/v2/_main_kwd_df.json")
 
 
+    y = x.iloc[0]
 
-    print((x.loc[x.intersection_size > 1]).to_string())
+    print(y.subm_relevance_score)
 
-    # print(x.head().to_string())
+    # print((x.loc[x.intersection_size > 1]).to_string())
+
+    # print((x.loc[x.aurl_kwd_intxn_size > 1]).to_string())
+
+
+    print(x.head().to_string())
 
 
 
@@ -71,16 +77,21 @@ def f(x):
     elif x == 3: get_datetime()
 
 
-f(2)
+f(1)
 
 
 def read_rpolitics_example_one():
-
 
     x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-politics_/2018-02-20_17-20/_main_kwd_df.json")
 
     print((x.loc[x.intersection_size > 1]).to_string())
 
+
+def read_rnews_one_with_title_and_aurl():
+
+    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-news_/Title-AURL_Kwd_Analysis/2018-02-17_20-54/_main_kwd_df.json")
+
+    print((x.loc[x.aurl_kwd_intxn_size > 1]).to_string())
 
 
 # read_rpolitics_example_one()

@@ -11,6 +11,7 @@ from Cerebrum.output_lobe.output_lobe_h import OutputLobe
 
 from datetime import datetime
 import indicoio
+from indicoio.utils import errors as indicoio_errors
 import json
 import pandas
 from pprint import pprint
@@ -37,6 +38,7 @@ class MachineLobe(Cerebrum):
                                             #   article for keyword analysis.
     analyze_subm_titles = False             # Indicates if the algorithm is to consider a Submission's title for keyword
                                             #   analysis.
+    analyze_subm_relevance = False          # The boolean controller for analysis of Submission relevance.
 
 
     # TODO: Complete compilation of ptopic keywords.
@@ -64,7 +66,7 @@ class MachineLobe(Cerebrum):
     avg_subm_title_size = 0
 
     # The minimum keyword intersection magnitude.
-    intersection_min = 0
+    kwd_intxn_min = 0
 
     # The divider for determination of minimum keyword intersection magnitude.
     intersection_min_divider = 0
@@ -161,12 +163,15 @@ class MachineLobe(Cerebrum):
 
 
         # TODO: Define metadata.
+        # TODO: Implement inclusion of AURL KWD analysis within the 'success_probability' measure.
         # Declare the main operation DataFrame.
         self._main_kwd_df = pandas.DataFrame(
             columns= [
                 'subm_title_keywords', 'intersection_size', 'keywords_intersection',
+                'aurl_kwd_intxn', 'aurl_kwd_intxn_size', 'subm_aurl_kwds',
                 'submission_id', 'submission_object', 'submission_title',
-                'success_probability', 'utterance_content', 'engagement_time'
+                'success_probability', 'utterance_content', 'engagement_time',
+                "comment_count", "subm_relevance_score"
             ]
         )
 
@@ -281,7 +286,7 @@ class MachineLobe(Cerebrum):
     # noinspection PyAttributeOutsideInit
     def start(self, work_subreddit: str, engage: bool, intersection_min_divider: int,
               subm_fetch_limit: (int, None), analyze_subm_articles: bool, override: bool= False,
-              analyze_subm_titles: bool= True):
+              analyze_subm_titles: bool= True, analyze_subm_relevance: bool = False):
         """
         Begins the process of Work.
 
@@ -289,7 +294,7 @@ class MachineLobe(Cerebrum):
             1.  __init_keyword_workflow__
             2.  __setup_process__
                 3.  __standard_process__
-                    4.  __process_keyword_analysis__
+                    4.  __process_subm_analysis__
 
                 3.  __stream_process__
                     ...
@@ -300,7 +305,7 @@ class MachineLobe(Cerebrum):
 
         # Define all necessary fields.
         self.set__start__values(engage, intersection_min_divider, subm_fetch_limit, analyze_subm_articles,
-                                analyze_subm_titles)
+                                analyze_subm_titles, analyze_subm_relevance)
 
 
         # Quick formal process override.
@@ -348,7 +353,7 @@ class MachineLobe(Cerebrum):
 
     def set__start__values(self, engage: bool, intersection_min_divider: int,
                            subm_fetch_limit: (int, None), analyze_subm_articles: bool,
-                           analyze_subm_titles: bool):
+                           analyze_subm_titles: bool, analyze_subm_relevance: bool):
         """
         Trivially defines the values for the '__start__' method.
 
@@ -378,6 +383,10 @@ class MachineLobe(Cerebrum):
 
         # Define the boolean controller for analysis of Submission article links.
         self.analyze_subm_articles = analyze_subm_articles
+
+
+        # Define the boolean controller for analysis of Submission relevance.
+        self.analyze_subm_relevance = analyze_subm_relevance
 
 
         return 0
@@ -448,7 +457,8 @@ class MachineLobe(Cerebrum):
 
 
         # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
-        self.__process_keyword_analysis__()
+        self.__process_subm_analysis__()
+
 
         try:
 
@@ -484,7 +494,7 @@ class MachineLobe(Cerebrum):
 
         # Define the minimum intersection size.
         # self.intersection_min = int(self.avg_subm_title_size / self.intersection_min_divider)
-        self.intersection_min = 3
+        self.kwd_intxn_min = 3
 
 
         def out(x: tuple):
@@ -557,7 +567,11 @@ class MachineLobe(Cerebrum):
 
         # Determine clearance status. Clearance evaluates as true if the magnitude of the intersection is greater than
         # or equal to 'intersection_min'.
-        if submission_data.intersection_size >= self.intersection_min:
+        if (submission_data.intersection_size or submission_data.aurl_kwd_intxn_size) >= self.kwd_intxn_min:
+
+            clearance = True
+
+        elif sum(submission_data.subm_relevance_score) > 5:
 
             clearance = True
 
@@ -612,9 +626,9 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __process_keyword_analysis__(self):
+    def __process_subm_analysis__(self):
         """
-        A mid-level management method for keyword-based success probability analysis.
+        A mid-level management method for measurement of Submission engagement success probability.
         The purpose of this method is to allow for the monitoring of the keyword-based
         analysis loop and provide accessibility to intervention for optimization or
         modification.
@@ -627,18 +641,52 @@ class MachineLobe(Cerebrum):
         keyword_analyses = []
 
 
+        indico_scraping_error = indicoio_errors.IndicoError
+
+
         # Analyze every Submission collected, appending each analysis to '_main_kwd_df'.
         for submission in self.submission_objects:
+
+            # Define container for Submission title and AURL analyses.
+            analysis = {}
+
+            # Update 'analysis' with Submission metadata.
+            submission.comments.replace_more(limit= 0)
+            comment_count = len(submission.comments.list())
+
+            analysis["comment_count"] = comment_count
+
 
             if self.analyze_subm_titles:
 
                 # Perform Submission title keyword analysis.
-                keyword_analyses.append(self.__analyze_subm_title_kwds__(submission))
+                analysis.update(self.__analyze_subm_title_kwds__(submission))
 
             if self.analyze_subm_articles:
 
-                # Perform Submission AURL keyword analysis.
-                keyword_analyses.append(self.__analyze_subm_aurl_kwds__(submission))
+                try:
+
+                    # Perform Submission AURL keyword analysis.
+                    analysis.update(self.__analyze_subm_aurl_kwds__(submission))
+
+                except indico_scraping_error:
+
+                    continue
+
+            if self.analyze_subm_relevance:
+
+                try:
+
+                    # Perform relevance measurement.
+                    analysis["subm_relevance_score"] = self.__analyze_subm_relevance__(submission)
+
+                except indico_scraping_error:
+
+                    continue
+
+
+            # Append the analysis to the collection for merging with '_main_kwd_df'.
+            keyword_analyses.append(analysis)
 
 
         # Convert 'keyword_analyses' to DataFrame for concatenation with '_main_kwd_df'.
@@ -650,6 +698,34 @@ class MachineLobe(Cerebrum):
 
 
         return 0
+
+
+
+    def __analyze_subm_relevance__(self, submission: reddit.Submission):
+        """
+        Generates a definition of relevance to the ptopic for a given Submission.
+
+        :return:
+        """
+
+        # Define alias to linked URL of the provided Submission.
+        subm_url = submission.url
+
+
+        # Generate a relevance measure.
+        relevance_analysis = indicoio.relevance(
+            subm_url,
+            [
+                "Puerto Rican Humanitarian Crisis",
+                "Humanitarian Crisis",
+                "Empathy",
+                "Anger"
+            ]
+        )
+
+
+        return relevance_analysis
+
 
 
 
@@ -674,6 +750,10 @@ class MachineLobe(Cerebrum):
         subm_aurl_kwds = tuple(subm_aurl_kwd_analysis.keys())
 
 
+        # Normalize all keywords to be lowercase.
+        subm_aurl_kwds = tuple(map(lambda x: x.lower(), subm_aurl_kwds))
+
+
         # Define the intersection of the ptopic keywords and the AURL.
         subm_aurl_intxn = self.intersect(self.ptopic_kwds_bag, subm_aurl_kwds)
 
@@ -686,7 +766,8 @@ class MachineLobe(Cerebrum):
         analysis = {
             "aurl_kwd_intxn": subm_aurl_intxn,
             "aurl_kwd_intxn_size": float(subm_aurl_intxn_count),
-            "subm_aurl_kwds": subm_aurl_kwds
+            "subm_aurl_kwds": subm_aurl_kwds,
+            "sub_aurl_url": subm_url
         }
 
 
@@ -803,13 +884,65 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __stream_process__(self):
+    def __stream_process__(self, work_subreddit: str= "news"):
         """
 
         :return:
         """
 
-        print(self.reddit_instance)
+        # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
+        # Create OutputLobe object to handle expression utterance.
+        self.__init_operation_lobes__(work_subreddit=work_subreddit)
+
+        # Command collection of Submission objects. Note: the '__collect_submissions__' method operates on the default
+        # Subreddit for the InputLobe instance, which is defined by the 'work_subreddit' parameter for the call to
+        # '__init_operation_lobes__' method.
+        self.submission_objects = self._input_lobe.__collect_submissions__(
+            return_objects=True,
+            fetch_limit=self.subm_fetch_limit
+        )
+
+        # Calculate average length of Submission titles.
+        self.avg_subm_title_size = self.__calc_avg_subm_title_size__(collection=self.submission_objects)
+
+        # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
+        self.__process_subm_analysis__()
+
+        try:
+
+            if self.engage:
+                # Perform engagement, determining for every Submission if it should be engaged and following through if so.
+                self.__process_submission_engages__()
+
+                # Redefine 'engage' boolean controller.
+                self.engage = False
+
+        except praw.exceptions.APIException as E:
+
+            print("Encountered: ", E.message)
+
+        finally:
+
+            # Archive '_main_kwd_df'.
+            self.archive_main_dataframe()
+
+
+
+
+
+
+
+
+        for submission in self.reddit_instance.subreddit("news").stream:
+
+
+
+            pass
+
+
+
+
+
 
 
         return 0

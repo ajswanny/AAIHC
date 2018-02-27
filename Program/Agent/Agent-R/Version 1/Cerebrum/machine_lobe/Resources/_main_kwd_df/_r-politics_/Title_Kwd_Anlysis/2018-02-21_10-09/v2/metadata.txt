@@ -1,0 +1,5 @@
+Intersection Minimum Divider: OVERRIDE: Manually defined the intersection minimum to be 3.
+
+Included relevance score measurement.
+
+Collected just 100 Submissions.
