@@ -12,10 +12,10 @@ class RSubmission:
 
 
     title_kwds = list()
-    title_intxn = list()
-    title_intxn_size = int()
+    title_kwd_intxn = list()
+    title_kwd_intxn_size = int()
 
-    iIO_title_relevance_score = float()
+    iIO_title_relevance_scores = tuple()
 
 
     aurl_url = str()
@@ -23,7 +23,7 @@ class RSubmission:
     aurl_kwd_intxn = list()
     aurl_kwd_intxn_size = list()
 
-    iIO_aurl_relevance_score = float()
+    iIO_aurl_relevance_scores = tuple()
 
 
     success_probability = float()
@@ -50,14 +50,14 @@ class RSubmission:
         self.high_engagement_datetime = None
 
         self.title_kwds = fields[6]
-        self.title_intxn = fields[4]
+        self.title_kwd_intxn = fields[4]
         self.aurl_kwd_intxn_size = fields[5]
-        self.iIO_title_relevance_score = fields[13][0]
+        self.iIO_title_relevance_scores = tuple(fields[13][0])
 
         self.aurl_url = fields[12]
         self.aurl_kwds = fields[11]
         self.aurl_kwd_intxn = fields[9]
         self.aurl_kwd_intxn_size = fields[10]
-        self.iIO_title_relevance_score = fields[13][1]
+        self.iIO_aurl_relevance_scores = tuple(fields[13][1])
 
 

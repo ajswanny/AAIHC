@@ -2,6 +2,7 @@ from Cerebrum.machine_lobe.machine_lobe_h import MachineLobe
 from pprint import pprint
 import pandas
 import json
+import indicoio
 
 def process():
 
@@ -27,7 +28,7 @@ def process():
     # machine.start(override= True, work_subreddit= 'politics', engage= False, subm_fetch_limit= 1,
     #               analyze_subm_articles= True, intersection_min_divider= 3, analyze_subm_relevance= False)
 
-    machine.__stream_process__()
+    machine.__stream_process__(engage= True)
 
     print(machine._main_kwd_df.to_string())
 
@@ -84,18 +85,3 @@ def f(x):
 f(1)
 
 
-def read_rpolitics_example_one():
-
-    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-politics_/2018-02-20_17-20/_main_kwd_df.json")
-
-    print((x.loc[x.intersection_size > 1]).to_string())
-
-
-def read_rnews_one_with_title_and_aurl():
-
-    x: pandas.DataFrame = pandas.read_json(path_or_buf= "Resources/_main_kwd_df/_r-news_/Title-AURL_Kwd_Analysis/2018-02-17_20-54/_main_kwd_df.json")
-
-    print((x.loc[x.aurl_kwd_intxn_size > 1]).to_string())
-
-
-# read_rpolitics_example_one()

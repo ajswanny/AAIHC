@@ -716,7 +716,7 @@ class MachineLobe(Cerebrum):
 
 
         # Generate a relevance measure.
-        relevance_analysis = indicoio.relevance(
+        relevance_analyses = indicoio.relevance(
             [submission.title, subm_url],
             [
                 "Puerto Rican Humanitarian Crisis",
@@ -727,7 +727,12 @@ class MachineLobe(Cerebrum):
         )
 
 
-        return relevance_analysis
+        # Convert "Anger" measures to negative values.
+        relevance_analyses[0][3] = -abs(relevance_analyses[0][3])
+        relevance_analyses[1][3] = -abs(relevance_analyses[1][3])
+
+
+        return relevance_analyses
 
 
 
@@ -902,7 +907,112 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __analyze_submission__(
+    def __stream_process__(self, engage: bool= False, work_subreddit: str= "news"):
+        """
+
+        :return:
+        """
+
+
+        # Define iterator for Stream loop.
+        stream_loop_i = 0
+
+
+        # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
+        # Create OutputLobe object to handle expression utterance.
+        self.__init_operation_lobes__(work_subreddit= work_subreddit)
+
+
+        # Define a container for Submission objects.
+        self.RedditSubmission_objects = pandas.DataFrame()
+
+
+        #
+        for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after= 0):
+
+
+            # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
+            preliminary_subm_data = self.__STREAM_analyze_submission__(
+                submission,
+                analyze_subm_title_kwds= True,
+                analyze_subm_article_kwds= True,
+                analyze_subm_relevance= True
+            )
+
+            # Create RSubmission object with preliminary Submission metadata and analyses.
+            R_Submission = RSubmission(fields= preliminary_subm_data)
+
+
+            if engage:
+
+                try:
+
+
+                    if self.__STREAM_clearance__(R_Submission):
+
+                        self.__STREAM_engage_subm__()
+
+                except praw.exceptions.APIException as E:
+
+                    print("Encountered comment creation limit...: ", E.message)
+
+                    continue
+
+
+
+        return 0
+
+
+
+    def __STREAM_engage_subm__(self):
+        """
+
+        :return:
+        """
+
+
+        return 0
+
+
+
+    def __STREAM_clearance__(self, submission_obj: RSubmission, clearance_method: str):
+        """
+        Determines if the Agent is to engage in a Submission, observing the RSubmission metadata.
+
+        # TODO: Substantial optimization.
+
+        :return:
+        """
+
+        # Initialize a clearance determination.
+        clearance = False
+
+
+        # Define a probabilistic measure for Clearance magnitude.
+
+
+        if clearance_method == "keywords":
+
+            # Determine clearance status.
+            # Clearance evaluates as true if the magnitude of the intersection is greater than
+            # or equal to a quarter of the length of the Submission title.
+            if (submission_obj.title_kwd_intxn_size or submission_obj.aurl_kwd_intxn_size) >= int(len(submission_obj.title)/4):
+
+                return True
+
+
+        if clearance_method == "relevance":
+
+            # Clearance evaluates as true if the Indico Relevance measure of the Submission AURL is above a magnitude of 4.5.
+            if sum(submission_obj.iIO_aurl_relevance_scores) > 4.5:
+
+                return True
+
+
+
+
+
+    def __STREAM_analyze_submission__(
             self, submission: reddit.Submission, analyze_subm_title_kwds: bool,
             analyze_subm_article_kwds: bool, analyze_subm_relevance: bool
     ):
@@ -964,61 +1074,5 @@ class MachineLobe(Cerebrum):
 
 
 
-    def __stream_process__(self, work_subreddit: str= "news"):
-        """
-
-        :return:
-        """
 
 
-        # Define iterator for Stream loop.
-        stream_loop_i = 0
-
-
-        # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
-        # Create OutputLobe object to handle expression utterance.
-        self.__init_operation_lobes__(work_subreddit= work_subreddit)
-
-
-        # Define a container for Submission objects.
-        self.RedditSubmission_objects = pandas.DataFrame()
-
-
-        #
-        for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after= 0):
-
-
-            # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
-            preliminary_subm_data = self.__analyze_submission__(
-                submission,
-                analyze_subm_title_kwds= True,
-                analyze_subm_article_kwds= True,
-                analyze_subm_relevance= True
-            )
-
-            # Create RSubmission object with preliminary Submission metadata and analyses.
-            R_Submission = RSubmission(fields= preliminary_subm_data)
-
-
-            # Perform keyword-based success probability analysis, yielding a DataFrame with metadata respective analyses.
-            self.__process_subm_analysis__()
-
-            try:
-
-                if self.engage:
-                    # Perform engagement, determining for every Submission if it should be engaged and following through if so.
-                    self.__process_submission_engages__()
-
-                    # Redefine 'engage' boolean controller.
-                    self.engage = False
-
-            except praw.exceptions.APIException as E:
-
-                print("Encountered comment creation limit...: ", E.message)
-
-
-
-
-
-
-        return 0
