@@ -37,19 +37,19 @@ class OutputLobe(Cerebrum):
 
 
 
-    def submit_submission_expression(self, actionable_submission: reddit.Submission, content: str):
+    def submit_submission_expression(self, actionable_submission: reddit.Submission, utterance_content: str):
         """
         A high-level management function to oversee expression utterance for Reddit Submissions.
 
         :param actionable_submission:
-        :param content:
+        :param utterance_content:
         :return:
         """
 
         # Perform expression utterance to the given Reddit Submission.
         actionable_submission.reply(
 
-            body= content
+            body= utterance_content
 
         )
 
