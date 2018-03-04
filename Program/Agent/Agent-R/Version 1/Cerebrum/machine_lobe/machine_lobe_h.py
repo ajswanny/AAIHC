@@ -960,6 +960,8 @@ class MachineLobe(Cerebrum):
 
                     stream_loop_i += 1
 
+                    print("Analyzed: ", stream_loop_i)
+
                     continue
 
 
@@ -979,8 +981,6 @@ class MachineLobe(Cerebrum):
                         continue
 
 
-
-
                 list_Rsubmissions.append(vars(R_Submission))
 
                 # Increment stream loop counter.
@@ -998,7 +998,13 @@ class MachineLobe(Cerebrum):
                         json.dump(list_Rsubmissions, file, indent= 2)
 
 
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, AttributeError):
+
+                if AttributeError:
+
+                    stream_loop_i += 1
+
+                    continue
 
                 print("Analyzed: ", stream_loop_i)
 
@@ -1008,7 +1014,7 @@ class MachineLobe(Cerebrum):
 
                 break
 
-
+            print("Analyzed: ", stream_loop_i)
 
         return 0
 
@@ -1032,6 +1038,10 @@ class MachineLobe(Cerebrum):
             self.reddit_instance.submission(submission_obj.id),
             utterance_content = utterance_content
         )
+
+
+        # Define True engaged-on state.
+        submission_obj.engaged_on = True
 
 
         return 0
@@ -1062,6 +1072,8 @@ class MachineLobe(Cerebrum):
             # or equal to a quarter of the length of the Submission title.
             if (submission_obj.title_kwd_intxn_size or submission_obj.aurl_kwd_intxn_size) >= int(len(submission_obj.title)/4):
 
+                submission_obj.engagement_clearance = True
+
                 return True
 
 
@@ -1071,6 +1083,8 @@ class MachineLobe(Cerebrum):
 
             # Clearance evaluates as true if the Indico Relevance measure of the Submission AURL is above a magnitude of 4.5.
             if sum(submission_obj.iIO_aurl_relevance_scores) > 4.5:
+
+                submission_obj.engagement_clearance = True
 
                 return True
 
@@ -1102,6 +1116,11 @@ class MachineLobe(Cerebrum):
 
         # Define container for Submission title and AURL analyses.
         analysis = {}
+
+
+        # Update 'analysis' with Submission metadata.
+        submission.comments.replace_more(limit=0)
+
 
         analysis["comment_amount"] = len(submission.comments.list())
         analysis["subm_title"] = submission.title

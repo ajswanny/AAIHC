@@ -36,6 +36,10 @@ class RSubmission:
 
 
 
+    engagement_clearance = bool()
+    engaged_on = bool()
+
+
     def __init__(self, fields: tuple):
         """
 
