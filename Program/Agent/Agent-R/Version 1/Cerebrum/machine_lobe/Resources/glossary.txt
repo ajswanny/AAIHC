@@ -21,3 +21,4 @@ API: Application Programming Interface
 HLTE: High-Level Textual Expression
 INTXM: Intersection
 iIO: indico IO
+FP: Filepath

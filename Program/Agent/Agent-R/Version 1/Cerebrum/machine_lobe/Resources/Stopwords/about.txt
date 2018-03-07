@@ -1,0 +1,2 @@
+The collection of stopwords is obtained from the NLTK's stopword collection.
+

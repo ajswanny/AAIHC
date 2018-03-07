@@ -4,12 +4,9 @@ Copyright (c) 2018, Alexander Joseph Swanson Villares
 """
 
 
-
 from Cerebrum.cerebrum import Cerebrum
 from Cerebrum.input_lobe.input_lobe_h import InputLobe
 from Cerebrum.output_lobe.output_lobe_h import OutputLobe
-from r_submission_h import RSubmission
-from Excpetions import SubmissionAnalysisError
 
 import _pickle as pickle
 import indicoio
@@ -24,7 +21,7 @@ import time
 import os
 from datetime import datetime
 from indicoio.utils import errors as indicoio_errors
-
+from nltk.corpus import stopwords as nltk_stopwords
 
 
 
@@ -56,7 +53,7 @@ class MachineLobe(Cerebrum):
     ptopic_kwds_bag = tuple()
 
     # The tuple containing English stop words.
-    stop_words = tuple(open("Resources/stopwords.txt").read().splitlines())
+    stop_words = tuple(nltk_stopwords.words("english"))
 
 
     # The collection of completed keyword analysis for Reddit Submissions.
@@ -151,7 +148,7 @@ class MachineLobe(Cerebrum):
         # TODO: Define the keywords collection.
         # A temporary definition of the collection of the topic keywords.
         # NOTE: CURRENTLY USING ONLY THE FIRST COLLECTION OF PROBLEM TOPIC KEYWORDS; STILL COMPILING FULL COLLECTION.
-        with open("Resources/Problem_Topic_Keywords/v1/topic_keywords.json", 'r') as fp:
+        with open("Resources/ProblemTopicKeywords/v1/topic_keywords.json", 'r') as fp:
 
             self._placer_ptopic_kwds_rated = pandas.Series(json.load(fp))
 
@@ -893,272 +890,5 @@ class MachineLobe(Cerebrum):
             else:
 
                 return success_probability
-
-
-    def __set_stream_process_values__(self):
-        """
-
-        :return:
-        """
-
-        ####################################
-
-
-        return 0
-
-
-
-    def __stream_process__(
-            self,
-            utterance_content: str,
-            save_file: str,
-            engage: bool= False,
-            work_subreddit: str= "news",
-    ):
-        """
-
-        :return:
-        """
-
-
-        # Define iterator for Stream loop.
-        stream_loop_i = 0
-
-
-        # Create InputLobe object to produce Submission metadata for the "news" Subreddit.
-        # Create OutputLobe object to handle expression utterance.
-        self.__init_operation_lobes__(work_subreddit= work_subreddit)
-
-
-        # Define a container for Submission objects.
-        self.RedditSubmission_objects = pandas.DataFrame()
-
-        list_Rsubmissions = list()
-
-
-        #
-        for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after= 0):
-
-
-            try:
-
-                # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
-                preliminary_subm_data = self.__STREAM_analyze_submission__(
-                    submission,
-                    analyze_subm_title_kwds= True,
-                    analyze_subm_article_kwds= True,
-                    analyze_subm_relevance= True
-                )
-
-
-                try:
-
-                    # Create RSubmission object with preliminary Submission metadata and analyses.
-                    R_Submission = RSubmission(fields= preliminary_subm_data)
-
-                except:
-
-                    stream_loop_i += 1
-
-                    print("Analyzed: ", stream_loop_i)
-
-                    continue
-
-
-                if engage:
-
-                    try:
-
-                        # Test for clearance of engagement and proceed if appropriate.
-                        if self.__STREAM_clearance__(R_Submission, clearance_method= "relevance"):
-
-                            self.__STREAM_engage_subm__(submission_obj= R_Submission, utterance_content= utterance_content)
-
-                    except praw.exceptions.APIException as E:
-
-                        print("Encountered comment creation limit...: ", E.message)
-
-                        continue
-
-
-                list_Rsubmissions.append(vars(R_Submission))
-
-                # Increment stream loop counter.
-                stream_loop_i += 1
-
-
-                if stream_loop_i % 100 == 0:
-
-                    os.system('clear')
-
-                    print("Analyzed: ", stream_loop_i)
-
-                    with open(save_file, "w+") as file:
-
-                        json.dump(list_Rsubmissions, file, indent= 2)
-
-
-            except (KeyboardInterrupt, AttributeError):
-
-                if AttributeError:
-
-                    stream_loop_i += 1
-
-                    continue
-
-                print("Analyzed: ", stream_loop_i)
-
-                with open(save_file, "w+") as file:
-
-                    json.dump(list_Rsubmissions, file, indent=2)
-
-                break
-
-            print("Analyzed: ", stream_loop_i)
-
-        return 0
-
-
-
-    def __STREAM_engage_subm__(
-            self,
-            submission_obj: RSubmission,
-            utterance_content: str
-    ):
-        """
-        Submits comment to Submission with provided Submission ID and utterance content.
-
-        :param submission_obj:
-        :param utterance_content:
-        :return:
-        """
-
-        # Perform engagement in a Submission with provided utterance content.
-        self._output_lobe.submit_submission_expression(
-            self.reddit_instance.submission(submission_obj.id),
-            utterance_content = utterance_content
-        )
-
-
-        # Define True engaged-on state.
-        submission_obj.engaged_on = True
-
-
-        return 0
-
-
-
-    def __STREAM_clearance__(
-            self,
-            submission_obj: RSubmission,
-            clearance_method: str
-    ):
-        """
-        Determines if the Agent is to engage in a Submission, observing the RSubmission metadata.
-
-        # TODO: Substantial optimization.
-
-        :return:
-        """
-
-        # # Initialize a clearance determination.
-        # clearance = False
-
-
-        if clearance_method == "keywords":
-
-            # Determine clearance status.
-            # Clearance evaluates as true if the magnitude of the intersection is greater than
-            # or equal to a quarter of the length of the Submission title.
-            if (submission_obj.title_kwd_intxn_size or submission_obj.aurl_kwd_intxn_size) >= int(len(submission_obj.title)/4):
-
-                submission_obj.engagement_clearance = True
-
-                return True
-
-
-        if clearance_method == "relevance":
-
-            sum_aggregation = sum(submission_obj.iIO_aurl_relevance_scores)
-
-            # Clearance evaluates as true if the Indico Relevance measure of the Submission AURL is above a magnitude of 4.5.
-            if sum(submission_obj.iIO_aurl_relevance_scores) > 4.5:
-
-                submission_obj.engagement_clearance = True
-
-                return True
-
-
-
-
-
-    def __STREAM_analyze_submission__(
-            self,
-            submission: reddit.Submission,
-            analyze_subm_title_kwds: bool,
-            analyze_subm_article_kwds: bool,
-            analyze_subm_relevance: bool
-    ):
-        """
-        Performs Keyword and Relevance analysis for a single Submission.
-
-        :return:
-        """
-
-
-        # Create temporary container for keyword analyses.
-        keyword_analyses = []
-
-
-        # Define alias to Indico API scraping error.
-        indico_scraping_error = indicoio_errors.IndicoError
-
-
-        # Define container for Submission title and AURL analyses.
-        analysis = {}
-
-
-        # Update 'analysis' with Submission metadata.
-        submission.comments.replace_more(limit=0)
-
-
-        analysis["comment_amount"] = len(submission.comments.list())
-        analysis["subm_title"] = submission.title
-
-
-        if analyze_subm_title_kwds:
-
-            # Perform Submission title keyword analysis.
-            analysis.update(self.__analyze_subm_title_kwds__(submission))
-
-        if analyze_subm_article_kwds:
-
-            try:
-
-                # Perform Submission AURL keyword analysis.
-                analysis.update(self.__analyze_subm_aurl_kwds__(submission))
-
-            except indico_scraping_error:
-
-                print("SubmissionAnalysisError")
-                # raise SubmissionAnalysisError
-
-        if analyze_subm_relevance:
-
-            try:
-
-                # Perform relevance measurement.
-                analysis["subm_relevance_scores"] = self.__analyze_subm_relevance__(submission)
-
-            except indico_scraping_error:
-
-                print("SubmissionAnalysisError")
-                # raise SubmissionAnalysisError
-
-
-        return tuple(analysis.values())
-
-
-
 
 

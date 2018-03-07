@@ -1,0 +1,18 @@
+reddit_parameters_1 = (
+        "YKsn6_Q_yaP46A",
+         "eygwAD8rMNEhFet0vLQmBqVPxbE",
+         "default_for_research",
+         "agent000001",
+         "S0awesome"
+    )
+
+O1 = SubredditStreamMachineOperator(
+    instance_id= "(2-6-18_12-21)_1",
+    reddit_api_parameters= reddit_parameters_1,
+    ssm__platform= "Reddit",
+    ssmp__utterance_content= "It's super concerning to see all thats happening in the world.. Earthquakes in Asia, diseases in Africa, even within the US, Puerto Ricans still living without electricity. And now this....",
+    ssmp__keyboard_interrupt_save_file= "Resources/StreamProcessDependencies/StreamProcessSubmData/kbd_interrupt_backup.json",
+    ssmp__engage= True,
+    ssmp__work_subreddit= "politics",
+    ssmp__relevance_clearance_threshold= 0.5
+)

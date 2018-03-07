@@ -28,11 +28,6 @@ def process():
     # machine.start(override= True, work_subreddit= 'politics', engage= False, subm_fetch_limit= 1,
     #               analyze_subm_articles= True, intersection_min_divider= 3, analyze_subm_relevance= False)
 
-    machine.__stream_process__(engage= False, utterance_content= "test", save_file= "temp_2.json")
-
-    # print(machine._main_kwd_df.to_string())
-    #
-    # print(machine._main_kwd_df.info())
 
 
 def get_datetime():
