@@ -13,7 +13,6 @@ import praw.exceptions
 import praw.models as reddit
 import time
 from datetime import datetime
-import os
 from indicoio.utils import errors as indicoio_errors
 from pprint import pprint
 from nltk.corpus import stopwords as nltk_stopwords
@@ -104,7 +103,7 @@ class SubredditStreamMachine:
 
         # A temporary definition of the collection of the topic keywords.
         # NOTE: CURRENTLY USING ONLY THE FIRST COLLECTION OF PROBLEM TOPIC KEYWORDS; STILL COMPILING FULL COLLECTION.
-        with open("../machine_lobe/Resources/ProblemTopicKeywords/v1/topic_keywords.json", 'r') as fp:
+        with open("/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/Agent/Agent-R/Version 1/Cerebrum/machine_lobe/Resources/ProblemTopicKeywords/v1/topic_keywords.json", 'r') as fp:
 
             self.rated_ptopic_kwds = pandas.Series(json.load(fp))
 
@@ -699,7 +698,10 @@ class SubredditStreamMachine:
         :return:
         """
 
+        # Override the aggregate archive for 'main_df' file-path.
+        # TODO: Make this more concrete.
         self.FP_aggregate_archive = FP_aggregate_archive_override
+        self.FP_final_archive = FP_aggregate_archive_override
 
 
         # Define iterator for Stream loop.
@@ -716,149 +718,163 @@ class SubredditStreamMachine:
         RSubmissions = list()
 
         # Define controller for infinite loop.
-        do_work = True
+        do_work = 1
 
 
-        while do_work:
 
-            do_work = input("Enter 0 to quit process.")
+        for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after=0):
 
-            #
-            for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after=0):
 
-                # Attempt to catch KeyboardInterrupt, AttributeError
+            # Attempt to catch KeyboardInterrupt, AttributeError
+            try:
+
+                # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
+                preliminary_subm_data = self.__process_submission__(
+                    submission_obj=submission,
+                    analyze_subm_title_kwds=True,
+                    analyze_subm_article_kwds=True,
+                    analyze_subm_relevance=True
+                )
+
                 try:
 
-                    # Generate metadata for Reddit Submission in preparation for RSubmission object creation.
-                    preliminary_subm_data = self.__process_submission__(
-                        submission_obj=submission,
-                        analyze_subm_title_kwds=True,
-                        analyze_subm_article_kwds=True,
-                        analyze_subm_relevance=True
+                    # Create RSubmission object with preliminary Submission metadata and analyses.
+                    R_Submission = RSubmission(fields=preliminary_subm_data)
+
+                    R_Submission.high_utterance_content = utterance_content
+
+
+                except Exception as E:
+
+                    stream_loop_i += 1
+
+                    print(
+                        "Error at index",
+                        stream_loop_i,
+                        "creating RSubmission object.",
+                        E.__traceback__
                     )
+
+                    print("Analyzed: ", stream_loop_i)
+
+                    continue
+
+                if engage:
 
                     try:
 
-                        # Create RSubmission object with preliminary Submission metadata and analyses.
-                        R_Submission = RSubmission(fields=preliminary_subm_data)
+                        # Test for clearance of engagement and and ensure that it has not already
+                        # been engaged on; proceed if appropriate.
+                        if (self.__STREAM_clearance__(R_Submission, "relevance", relevance_clearance_threshold) and
+                                RSubmission.engaged_on is False):
 
-                        R_Submission.high_utterance_content = utterance_content
+                            self.__STREAM_engage_subm__(submission_obj=R_Submission,
+                                                        utterance_content=utterance_content)
+
+                            # Define time of engagement.
+                            R_Submission.high_engagement_datetime = str(datetime.now())
+
+                    except praw.exceptions.APIException as E:
+
+                        print("Encountered comment creation limit: ", E.message, "\nWaiting 620 seconds...\n")
+
+                        # Wait out comment creation limit.
+                        time.sleep(520)
+
+                        print("Continuing...")
+
+                # Append the collection of fields for the RSubmission object to 'RSubmission' for later conversion
+                #   to Pandas DataFrame.
+                RSubmissions.append(vars(R_Submission))
+
+                # Indicate clearance for data archival.
+                archive = True
+
+                # Increment stream loop counter.
+                stream_loop_i += 1
+
+                print("Analyzed: ", stream_loop_i)
 
 
-                    except Exception as E:
+                # FIXME: Remove! This creates a single netry for a json file so that the initial archive step does not
+                # FIXME     read an empty JSON file and return an error.
+                # self.main_df.iloc[0].to_json(self.FP_final_archive)
 
-                        stream_loop_i += 1
 
-                        print(
-                            "Error at index",
-                            stream_loop_i,
-                            "creating RSubmission object.",
-                            E.__traceback__
-                        )
+                if stream_loop_i == 99:
+                    # Anticipate reach of 100 Submission Stream limit.
 
-                        continue
+                    # Save work data.
+                    self.__save_work__(RSubmissions)
 
-                    if engage:
+                    print("*" * 20)
+                    print("ENTERING ADDITIONAL RECURSION LEVEL")
+                    print("*" * 20)
 
-                        try:
 
-                            # Test for clearance of engagement and and ensure that it has not already
-                            # been engaged on; proceed if appropriate.
-                            if (self.__STREAM_clearance__(R_Submission, "relevance", relevance_clearance_threshold) and
-                                    RSubmission.engaged_on is False):
-                                self.__STREAM_engage_subm__(submission_obj=R_Submission,
-                                                            utterance_content=utterance_content)
+                    # Call recursively to continue process.
+                    self.__recursive_stream_process__(
 
-                                # Set engagement status.
-                                R_Submission.engaged_on = True
+                        utterance_content,
+                        keyboard_interrupt_save_file,
+                        FP_aggregate_archive_override,
+                        engage,
+                        work_subreddit,
+                        relevance_clearance_threshold
 
-                                # Define time of engagement.
-                                R_Submission.high_engagement_datetime = str(datetime.now())
+                    )
 
-                        except praw.exceptions.APIException as E:
 
-                            print("Encountered comment creation limit...: ", E.message, "\nWaiting 520 seconds.")
+            except (KeyboardInterrupt, AttributeError, IndicoError) as Error:
 
-                            # Wait out comment creation limit.
-                            time.sleep(520)
+                if AttributeError:
+                    print(AttributeError.__cause__, " at index: ", stream_loop_i)
 
-                    # Append the collection of fields for the RSubmission object to 'RSubmission' for later conversion
-                    #   to Pandas DataFrame.
-                    RSubmissions.append(vars(R_Submission))
-
-                    # Indicate clearance for data archival.
-                    archive = True
-
-                    # Increment stream loop counter.
                     stream_loop_i += 1
 
-                    if stream_loop_i == 99:
-                        # Anticipate reach of 100 Submission Stream limit.
-
-                        # Save work data.
-                        self.__save_work__(RSubmissions)
-
-                        # Call recursively to continue process.
-                        self.__recursive_stream_process__(
-
-                            utterance_content,
-                            keyboard_interrupt_save_file,
-                            FP_aggregate_archive_override,
-                            engage,
-                            work_subreddit,
-                            relevance_clearance_threshold
-
-                        )
+                    print("Analyzed: ", stream_loop_i)
 
 
-                except (KeyboardInterrupt, AttributeError, IndicoError) as Error:
+                    continue
 
-                    if AttributeError:
-                        print(AttributeError.__cause__, " at index: ", stream_loop_i)
+                if IndicoError:
+                    print(IndicoError, " at index: ", stream_loop_i)
 
-                        stream_loop_i += 1
+                    stream_loop_i += 1
 
-                        continue
-
-                    if IndicoError:
-                        print(IndicoError, " at index: ", stream_loop_i)
-
-                        stream_loop_i += 1
-
-                        continue
-
-                    if KeyboardInterrupt:
-                        # Indicates user process termination.
-
-                        with open(keyboard_interrupt_save_file, "w+") as file:
-
-                            json.dump(RSubmissions, file, indent=2)
-
-                            self.__save_work__(RSubmissions)
-
-                        return 0
+                    print("Analyzed: ", stream_loop_i)
 
 
-                    else:
+                    continue
 
-                        print("Unknown error. Exiting and saving data...")
+                else:
 
-                        self.__save_work__(RSubmissions)
+                    print("Unknown error. Exiting and saving data...")
+
+                    self.__save_work__(RSubmissions)
+
+            except KeyboardInterrupt:
+                # Indicates user process termination.
+
+                with open(keyboard_interrupt_save_file, "w+") as file:
+
+                    json.dump(RSubmissions, file, indent=2)
+
+                    self.__save_work__(RSubmissions)
+
+                return 0
 
 
-                finally:
+            finally:
 
-                    if archive:
-                        # FIXME: Currently feeding every single RSubmission object and its analysis. Must optimize in order
-                        # FIXME  to feed just the current RSubmission.
+                if archive:
+                    # FIXME: Currently feeding every single RSubmission object and its analysis. Must optimize in order
+                    # FIXME  to feed just the current RSubmission.
 
-                        # Store the most recently processed RSubmission.
-                        self.__save_work__(RSubmissions)
+                    # Store the most recently processed RSubmission.
+                    self.__save_work__(RSubmissions)
 
-            if do_work == 0:
-                print("Ending work.")
 
-                break
 
         return 0
 
