@@ -52,7 +52,8 @@ class SubredditStreamMachine:
             instance_num: int,
             platform: str,
             reddit_params: tuple,
-            task: str = "Keyword and Relevance Analysis and Expression"
+            task: str = "Keyword and Relevance Analysis and Expression",
+            **kwargs
     ):
         """
 
@@ -83,15 +84,24 @@ class SubredditStreamMachine:
         )
 
 
+        # Define the ID for the instance run.
         self.instance_id = instance_id
 
+        # Define the instance number.
         self.instance_num = instance_num
 
+        # Define the boolean controller for recursion.
         self.operate_recursively = operate_recursively
 
 
         # Define dependencies.
         self.__define_stream_dependencies__()
+
+
+        # Define varible parameters.
+        if "indicoio_api_key" in kwargs:
+
+            indicoio.config.api_key = kwargs["indicoio_api_key"]
 
 
 

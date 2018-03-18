@@ -22,7 +22,8 @@ class SubredditStreamMachineOperator:
             ssmp__keyboard_interrupt_save_file: str,
             ssmp__engage: bool,
             ssmp__work_subreddit: str,
-            ssmp__relevance_clearance_threshold: float
+            ssmp__relevance_clearance_threshold: float,
+            **kwargs
     ):
         """
 
@@ -40,14 +41,28 @@ class SubredditStreamMachineOperator:
         print("*" * 50)
 
 
-        # Create Subreddit Stream Machine.
-        SSM = SubredditStreamMachine(
-            operate_recursively= operate_recursively,
-            instance_num= instance_num,
-            instance_id= instance_id,
-            platform= ssm__platform,
-            reddit_params= reddit_api_parameters,
-        )
+        if "indicoio_api_key" in kwargs:
+
+            # Create Subreddit Stream Machine.
+            SSM = SubredditStreamMachine(
+                operate_recursively=operate_recursively,
+                instance_num=instance_num,
+                instance_id=instance_id,
+                platform=ssm__platform,
+                reddit_params=reddit_api_parameters,
+                indicoio_api_key= kwargs["indicoio_api_key"]
+            )
+
+        else:
+
+            # Create Subreddit Stream Machine.
+            SSM = SubredditStreamMachine(
+                operate_recursively= operate_recursively,
+                instance_num= instance_num,
+                instance_id= instance_id,
+                platform= ssm__platform,
+                reddit_params= reddit_api_parameters,
+            )
 
 
         if operate_recursively:

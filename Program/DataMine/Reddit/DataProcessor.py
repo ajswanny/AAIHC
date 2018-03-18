@@ -6,7 +6,6 @@ Copyright (c) 2017, Alexander Joseph Swanson Villares
 # BOF
 
 # TODO: Finish documentation.
-# TODO: Fix corrupted data.
 
 # Import dependencies.
 import DataCleaner
@@ -828,7 +827,7 @@ class DataProcessor:
     # TODO: Optimize
     def generate_statistics(params: tuple, file_path: str):
         """
-        Calculates and records the statistics for 'DF'.
+        Calculates the statistics for 'DF'.
 
         :return:
         """

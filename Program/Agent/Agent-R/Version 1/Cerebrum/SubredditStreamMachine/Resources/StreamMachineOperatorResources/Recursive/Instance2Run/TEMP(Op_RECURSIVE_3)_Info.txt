@@ -1,0 +1,13 @@
+Using Indico IO API key form account:
+
+    - Username: alexjosephswanson@gmail.com
+    - Password: midnightdpenguins
+
+
+This agent is to be used temporarily until more credits are granted for default API key account.
+
+
+Relevance Score Threshold:
+    - 0.6626070441
+    - This relevance score has been determined by calculating the relevance score of the problem topic query,
+    "Humanitarian Crisis in Puerto Rico" with the article "https://www.washingtonpost.com/national/if-anyone-can-hear-us--help-puerto-ricos-mayors-describe-widespread-devastation-from-hurricane-maria/2017/09/23/7ef5f6c4-a069-11e7-8ea1-ed975285475e_story.html?utm_term=.2cbe5dcd3e54".

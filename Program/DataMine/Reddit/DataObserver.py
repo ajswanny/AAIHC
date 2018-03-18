@@ -35,7 +35,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 
     # Define correct data types.
-    # df = df.astype({'category': "category"})
+    df = df.astype({'category': "category"})
 
 
     # Perform final check for duplicated DataFrame rows.
@@ -43,8 +43,8 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 
     # Perform final check for null values.
-    # df = df.loc[df['sentiment_score'].notnull()]
-    # df = df.loc[df['sentiment_magnitude'].notnull()]
+    df = df.loc[df['sentiment_score'].notnull()]
+    df = df.loc[df['sentiment_magnitude'].notnull()]
 
 
     # Sort the DataFrame's index.
@@ -68,7 +68,7 @@ def build_simply(file_path: str) -> pandas.DataFrame:
 
 def placer():
     """
-    A placer for processed DataFrame aggregation.
+    A placer processed DataFrame aggregation.
     :return:
     """
 
@@ -97,38 +97,10 @@ def placer():
 def main():
 
 
-    df = build_simply(file_path= '/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/JSON_Data/Processed_DataFrames/r-worldnews/DF-version_2/DF_v2.json')
-
-
-    df.drop(['body',
-             'parent_id',
-             'submission_id',
-             'controversiality',
-             'date_created',
-             'time_created'],
-            axis=1, inplace= True)
-    df = df.truncate(after= 1199)
-
-
-    print(df.info())
-
-
-
-    # df.to_csv(path_or_buf='/Users/admin/Documents/Work/AAIHC/AAIHC-Python/Program/DataMine/Reddit/reddit_data.csv',
-    #           na_rep= 'N/A'
-    # )
-
-
-
-
-    # print(df.info())
-
+    print()
 
 
     return 0
-
-
-main()
 
 
 # EOF

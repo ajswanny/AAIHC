@@ -1,0 +1,10 @@
+Using Indico IO API key form account:
+
+    - Username: alexjosephswanson@gmail.com
+    - Password: midnightdpenguins
+
+
+This agent is to be used temporarily until more credits are granted for default API key account.
+
+
+Relevance Score Threshold: 0.7
