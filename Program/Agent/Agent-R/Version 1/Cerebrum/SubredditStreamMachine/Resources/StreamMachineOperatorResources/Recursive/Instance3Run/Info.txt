@@ -1,0 +1,47 @@
+For this instance, we are attempting to generate responses to different topics (not the Puerto Rican humanitarian crisis).
+
+The topics to be used for this instance are obtained from the collection of the most popular searches in the search engine Google.
+Topics:
+    1. Roseanne
+    2. Alton Sterling
+    3. John Paul Stevens
+    4. Germany vs Brazil
+    5. Sean Penn
+
+For all Agents we are using a Relevance threshold of 0.6.
+
+
+Accounts:
+    1
+        Email: subreddit.stream.alttopic.agent.1@gmail.com
+            Password: subreddit.stream.alttopic.agent.1.password
+
+        Reddit:
+            Username: ssata1
+            Password: subreddit.stream.alttopic.agent.1.password
+
+            Parameters:
+                reddit_parameters = (
+                    "fkWcAvHpk9bYaw",
+                    "KCmNPZmD9MyLLspLJ2QuKk9sF4U",
+                    "research subreddit stream script",
+                    "ssata1",
+                    "subreddit.stream.alttopic.agent.1.password"
+                )
+
+    2
+        Email: subreddit.stream.alttopic.agent.2@gmail.com
+            Password: subreddit.stream.alttopic.agent.2.password
+
+        Reddit:
+            Username: ssata2
+            Password: subreddit.stream.alttopic.agent.2.password
+
+            Parameters:
+                reddit_parameters = (
+                    "fkWcAvHpk9bYaw",
+                    "KCmNPZmD9MyLLspLJ2QuKk9sF4U",
+                    "research subreddit stream script",
+                    "saata1",
+                    "subreddit.stream.alttopic.agent.1.password"
+                )

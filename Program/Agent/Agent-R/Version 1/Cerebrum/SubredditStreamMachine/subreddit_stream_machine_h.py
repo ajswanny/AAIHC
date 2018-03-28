@@ -104,6 +104,15 @@ class SubredditStreamMachine:
             indicoio.config.api_key = kwargs["indicoio_api_key"]
 
 
+        if "problem_topic" in kwargs:
+
+            self.problem_topic = kwargs["problem_topic"]
+
+        else:
+
+            self.problem_topic = "Humanitarian Crisis in Puerto Rico"
+
+
 
     def __define_stream_dependencies__(self):
         """
@@ -386,10 +395,7 @@ class SubredditStreamMachine:
         relevance_analyses = indicoio.relevance(
             [submission.title, subm_url],
             [
-                "Humanitarian Crisis in Puerto Rico",
-                # "Humanitarian Crisis",
-                # "Empathy",
-                # "Anger"
+                self.problem_topic
             ]
         )
 
@@ -632,6 +638,7 @@ class SubredditStreamMachine:
 
 
                 if stream_loop_i == 99:
+
                     # End process in anticipation of 100 Submission Stream limit.
 
                     # Save work data.
@@ -730,6 +737,9 @@ class SubredditStreamMachine:
         # Define controller for infinite loop.
         do_work = 1
 
+        # Indicate clearance for data archival.
+        archive = False
+
 
 
         for submission in self.reddit_instance.subreddit("news").stream.submissions(pause_after=0):
@@ -806,7 +816,7 @@ class SubredditStreamMachine:
                 print("Analyzed: ", stream_loop_i)
 
 
-                # FIXME: Remove! This creates a single netry for a json file so that the initial archive step does not
+                # FIXME: Remove! This creates a single entry for a json file so that the initial archive step does not
                 # FIXME     read an empty JSON file and return an error.
                 # self.main_df.iloc[0].to_json(self.FP_final_archive)
 
@@ -838,14 +848,15 @@ class SubredditStreamMachine:
             except (KeyboardInterrupt, AttributeError, IndicoError) as Error:
 
                 if AttributeError:
-                    print(AttributeError.__cause__, " at index: ", stream_loop_i)
+                    print(AttributeError, " at index: ", stream_loop_i)
 
                     stream_loop_i += 1
 
                     print("Analyzed: ", stream_loop_i)
+                    print("Encountered unknown error. Breaking loop.")
 
 
-                    continue
+                    break
 
                 if IndicoError:
                     print(IndicoError, " at index: ", stream_loop_i)

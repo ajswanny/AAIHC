@@ -36,7 +36,7 @@ def RT01():
         ssm__platform= "Reddit",
         ssmp__utterance_content= "It's super concerning to see all thats happening in the world.. Earthquakes in Asia, diseases in Africa, even within the US, Puerto Ricans still living without electricity. And now this.. What can be done?",
         ssmp__keyboard_interrupt_save_file= "Resources/StreamProcessDependencies/StreamProcessSubmData/kbd_interrupt_backup.json",
-        ssmp__engage= False,
+        ssmp__engage= True,
         ssmp__work_subreddit= "news",
         ssmp__relevance_clearance_threshold= 0.7,
         indicoio_api_key= "7dc1f325509757ba2e76e411beef646f"

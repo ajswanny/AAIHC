@@ -1,4 +1,4 @@
-Using Indico IO API key form account:
+Using Indico IO API key from account:
 
     - Username: alexjosephswanson@gmail.com
     - Password: midnightdpenguins

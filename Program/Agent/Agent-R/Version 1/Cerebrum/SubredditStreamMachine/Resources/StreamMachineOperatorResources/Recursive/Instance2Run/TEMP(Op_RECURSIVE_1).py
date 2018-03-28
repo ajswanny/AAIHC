@@ -4,7 +4,7 @@ from SubredditStreamMachine.subreddit_stream_machine_operator_h import Subreddit
 def RT01():
     """
         Recursive!
-        Operating with Reddit Account 1
+        Operating with Reddit Account 2
         Using utterance 3
         Operating within Subreddit: r/news
 

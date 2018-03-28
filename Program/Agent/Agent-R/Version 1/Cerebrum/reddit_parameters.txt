@@ -17,3 +17,14 @@ reddit_parameters_2 = (
          email: "subreddit.stream.agent.1@gmail.edu"
          email_psswd: "subreddit.stream.agent.1.password"
     )
+
+
+reddit_parameters_3 = (
+    "B2ftBocL0DSYKQ",
+     "bD_wgy8GWlQJ6koXUwqP0IjzZao",
+     "An observer of Subreddit Streams",
+     "ssa2G",
+     "subreddit.stream.agent.2.password"
+     email: "subreddit.stream.agent.2@gmail.edu"
+     email_psswd: "subreddit.stream.agent.2.password"
+)

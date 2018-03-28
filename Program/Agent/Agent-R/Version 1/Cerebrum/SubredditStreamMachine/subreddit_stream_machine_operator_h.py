@@ -23,6 +23,7 @@ class SubredditStreamMachineOperator:
             ssmp__engage: bool,
             ssmp__work_subreddit: str,
             ssmp__relevance_clearance_threshold: float,
+            problem_topic: str,
             **kwargs
     ):
         """
@@ -48,8 +49,9 @@ class SubredditStreamMachineOperator:
                 operate_recursively=operate_recursively,
                 instance_num=instance_num,
                 instance_id=instance_id,
-                platform=ssm__platform,
-                reddit_params=reddit_api_parameters,
+                platform= ssm__platform,
+                reddit_params= reddit_api_parameters,
+                problem_topic= problem_topic,
                 indicoio_api_key= kwargs["indicoio_api_key"]
             )
 
@@ -62,6 +64,7 @@ class SubredditStreamMachineOperator:
                 instance_id= instance_id,
                 platform= ssm__platform,
                 reddit_params= reddit_api_parameters,
+                problem_topic= problem_topic
             )
 
 
@@ -69,12 +72,12 @@ class SubredditStreamMachineOperator:
 
             # Initiate the Submission Stream process.
             SSM.__recursive_stream_process__(
-                utterance_content=ssmp__utterance_content,
-                keyboard_interrupt_save_file=ssmp__keyboard_interrupt_save_file,
+                utterance_content= ssmp__utterance_content,
+                keyboard_interrupt_save_file= ssmp__keyboard_interrupt_save_file,
                 FP_aggregate_archive_override= FP_aggregate_archive_override,
-                engage=ssmp__engage,
-                work_subreddit=ssmp__work_subreddit,
-                relevance_clearance_threshold=ssmp__relevance_clearance_threshold
+                engage= ssmp__engage,
+                work_subreddit= ssmp__work_subreddit,
+                relevance_clearance_threshold= ssmp__relevance_clearance_threshold
             )
 
         else:
