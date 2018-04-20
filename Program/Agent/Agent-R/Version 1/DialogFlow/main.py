@@ -11,11 +11,7 @@ reddit_parameters = (
 )
 
 
-DialogFlow_Agent = DF_Agent(
-    reddit_parameters= reddit_parameters,
-    submission= "89rm5v",
-    running_time= 7200,
-)
+DialogFlow_Agent = DF_Agent(reddit_parameters=reddit_parameters, submission="89rm5v", running_time=7200)
 
 
 # DialogFlow_Agent.run_main_process()
