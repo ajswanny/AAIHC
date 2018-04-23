@@ -1,6 +1,7 @@
 from dialogflow_agent import DF_Agent
 
 
+
 # Define Reddit account parameters.
 reddit_parameters = (
         "zO1z52xZNtdxrA",
@@ -11,9 +12,15 @@ reddit_parameters = (
 )
 
 
-DialogFlow_Agent = DF_Agent(reddit_parameters=reddit_parameters, submission="89rm5v", running_time=7200)
+DialogFlow_Agent = DF_Agent(
+        reddit_parameters=reddit_parameters,
+        submission="8e471k",
+)
 
 
-# DialogFlow_Agent.run_main_process()
+DialogFlow_Agent.run_main_process(
+        engage= False,
+        time_limiter= 7200
+)
 
-DialogFlow_Agent.print_subm_comments()
+# DialogFlow_Agent.print_subm_comments()
