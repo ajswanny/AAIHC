@@ -154,7 +154,7 @@ class DF_Agent:
                 try:
 
                     # Ignore Comment is the context length is less than 3 (three words).
-                    if len(comment_body.split()) < 3:
+                    if len(comment_body.split()) < 5:
 
                         print(
                             "Encountered Comment of insufficient context length.",
@@ -240,7 +240,7 @@ class DF_Agent:
                             # Archive comment to 'engaged_comments'.
                             engaged_comments.append(comment)
 
-
+                            # Stall process.
                             time.sleep(600)
 
                             # Redefine the GCP parameters.
@@ -262,6 +262,9 @@ class DF_Agent:
                     # Archive Comment object to 'engaged_comments'.
                     engaged_comments.append(comment)
 
+                    # Redefine the GCP parameters.
+                    self.define_gcp_parameters()
+
 
                     continue
 
@@ -278,6 +281,9 @@ class DF_Agent:
 
                     # Archive Comment object to 'engaged_comments'.
                     engaged_comments.append(comment)
+
+                    # Redefine the GCP parameters.
+                    self.define_gcp_parameters()
 
                     continue
 
@@ -297,12 +303,21 @@ class DF_Agent:
                     "Finished loop: ",
                     mainloop_iterations,
                     "\n",
+                    "Beginning process stall for 5 minutes.",
+                    "\n",
                     "=" * 30,
                     "\n\n"
                 )
 
                 # Increment mainloop iterations record.
                 mainloop_iterations += 1
+
+                # Redefine the GCP parameters.
+                self.define_gcp_parameters()
+
+                # Stall process.
+                time.sleep(300)
+
 
 
         return self

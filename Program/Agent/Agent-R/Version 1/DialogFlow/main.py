@@ -14,12 +14,12 @@ reddit_parameters = (
 
 DialogFlow_Agent = DF_Agent(
         reddit_parameters=reddit_parameters,
-        submission="8e471k",
+        submission="8eyc2c",
 )
 
 
 DialogFlow_Agent.run_main_process(
-        engage= False,
+        engage= True,
         time_limiter= 7200
 )
 
