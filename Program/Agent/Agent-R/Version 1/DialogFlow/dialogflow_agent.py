@@ -121,11 +121,6 @@ class DF_Agent:
         :return:
         """
 
-
-        # Define list of all Comment objects from the specified Submission.
-        self.submission.comments.replace_more(limit= 0)
-        submission_comments = self.submission.comments.list()
-
         # Define list of all Comments that have been engaged-on.
         engaged_comments = []
 
@@ -142,6 +137,10 @@ class DF_Agent:
 
 
         while True:
+
+            # Define list of all Comment objects from the specified Submission.
+            self.submission.comments.replace_more(limit=0)
+            submission_comments = self.submission.comments.list()
 
 
             # Consider every Comment for a response.
